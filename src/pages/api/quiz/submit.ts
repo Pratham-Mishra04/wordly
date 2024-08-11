@@ -10,21 +10,32 @@ interface SubmitQuizBody {
     await connectToDB();
   
     if (req.method === 'POST') {
+      const { questions } = req.body;
+
       try {
-        const { answers }: SubmitQuizBody = req.body;
-        const score = answers.filter(
-          (answer) => answer.selectedOption === answer.correctOption
+        // Calculate the score based on user answers and correct answers
+        const totalQuestions = questions.length;
+        const correctAnswers = questions.filter(
+          (q: { correctAnswer: string; selectedAnswer: string | null }) => q.correctAnswer === q.selectedAnswer
         ).length;
   
-        const quiz = new Quiz({ score, length: answers.length });
-        await quiz.save();
+        // Create a new quiz entry
+        const newQuiz = new Quiz({
+          questions,
+          score: correctAnswers,
+          length: totalQuestions,
+        });
   
-        res.status(201).json({ success: true, data: { score, quiz } });
+        // Save to database
+        await newQuiz.save();
+  
+        res.status(200).json({ success: true, data: { score: correctAnswers } });
       } catch (error) {
-        res.status(400).json({ success: false, error: (error as Error).message });
+        res.status(500).json({ success: false, error: (error as Error).message });
       }
     } else {
-      res.status(405).json({ success: false, error: 'Method not allowed' });
+      res.setHeader('Allow', ['POST']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   };
   

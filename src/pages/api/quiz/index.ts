@@ -2,6 +2,7 @@ import Quiz from '@/models/quiz';
 import Word from '@/models/word';
 import connectToDB from '@/server/db';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { Option } from '@/types';
 
 export const getAllQuizzes = async (req: NextApiRequest, res: NextApiResponse) => {
     await connectToDB();
@@ -18,40 +19,53 @@ export const getAllQuizzes = async (req: NextApiRequest, res: NextApiResponse) =
     }
   };
   
-  interface CreateQuizBody {
-    length: number;
-  }
-  
-
-  const shuffle = <T>(array: T[]): T[] => {
-    return array.sort(() => Math.random() - 0.5);
-  };
-  
   export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
     await connectToDB();
   
     if (req.method === 'POST') {
-      try {
-        const { length }: CreateQuizBody = req.body;
+      const { length } = req.body;
   
-        // Fetch a random set of words from the database
+      try {
+        // Fetch random words from the database
         const words = await Word.aggregate([{ $sample: { size: length } }]);
   
-        const quiz = {
-          questions: words.map((word: any) => {
-            const randomIndex = Math.floor(Math.random() * word.examples.length);
-            const question = word.examples[randomIndex].replace(word.word, '_____');
-            const options = shuffle([...Array(3).fill(null), word.word]);
-            return { question, options };
-          }),
-        };
+        // Retrieve all words for option generation
+        const allWords = await Word.find({}).select('word -_id');
   
-        res.status(201).json({ success: true, data: quiz });
+        const questions = words.map((word) => {
+          const example = word.examples[0];
+          const question = example.replace(word.word, '____');
+          const correctOption:Option = {
+            value:word.word,
+            isCorrect:true
+          }
+  
+          // Generate options
+          const options: Option[] = [];
+          while (options.length < 4) {
+            const randomWord = allWords[Math.floor(Math.random() * allWords.length)].word;
+            if (!options.some(opt => opt.value === randomWord)) {
+              options.push({ value: randomWord, isCorrect: false });
+            }
+          }
+  
+          // Shuffle options
+          const shuffledOptions = options.sort(() => Math.random() - 0.5);
+  
+          return {
+            question,
+            options: shuffledOptions.map(opt => opt.value),
+            correctAnswer: correctOption.value,
+          };
+        });
+  
+        res.status(200).json({ success: true, data: { questions } });
       } catch (error) {
-        res.status(400).json({ success: false, error: (error as Error).message });
+        res.status(500).json({ success: false, error: (error as Error).message });
       }
     } else {
-      res.status(405).json({ success: false, error: 'Method not allowed' });
+      res.setHeader('Allow', ['POST']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   };
 

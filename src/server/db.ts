@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const MONGODB_URI = process.env.MONGODB_URI as string;
 
 if (!MONGODB_URI) {
-  throw new Error('MONGO Connection URL not found.');
+  throw new Error('MONGO Connection URL not found in env.');
 }
 
 interface MongooseCache {
