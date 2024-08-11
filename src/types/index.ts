@@ -28,3 +28,18 @@ export interface Word {
     questions: Question[];
   }
   
+  export interface QuestionResult {
+    question: string;
+    correctAnswer: string;
+    selectedAnswer: string;
+    isCorrect: boolean;
+  }
+  
+  export interface QuizResult {
+    score: number;
+    correctCount: number;
+    incorrectCount: number;
+    date: string;
+    questions: QuestionResult[];
+  }
+  

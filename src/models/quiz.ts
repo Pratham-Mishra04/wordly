@@ -16,7 +16,7 @@ const QuizSchema: Schema = new Schema({
     {
       question: { type: String, required: true },
       correctAnswer: { type: String, required: true },
-      selectedAnswer: { type: String, default: null },
+      selectedAnswer: { type: String, required: true },
     },
   ],
   score: { type: Number, required: true },

@@ -1,10 +1,6 @@
 import Quiz from '@/models/quiz';
 import connectToDB from '@/server/db';
 import type { NextApiRequest, NextApiResponse } from 'next';
-
-interface SubmitQuizBody {
-    answers: { question: string; selectedOption: string; correctOption: string }[];
-  }
   
   export const submitQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
     await connectToDB();
@@ -28,8 +24,15 @@ interface SubmitQuizBody {
   
         // Save to database
         await newQuiz.save();
+
+        const results = questions.map((q: any) => ({
+          question: q.question,
+          correctAnswer: q.correctAnswer,
+          selectedAnswer: q.selectedAnswer,
+          isCorrect: q.correctAnswer === q.selectedAnswer,
+        }));
   
-        res.status(200).json({ success: true, data: { score: correctAnswers } });
+        res.status(200).json({ success: true, data: { score: correctAnswers,results } });
       } catch (error) {
         res.status(500).json({ success: false, error: (error as Error).message });
       }

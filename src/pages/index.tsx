@@ -8,17 +8,22 @@ export default function Home() {
         Dashboard
       </Typography>
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={3}>
           <Button variant="contained" color="primary" fullWidth component={Link} href="/words">
             View Words
           </Button>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={3}>
           <Button variant="contained" color="primary" fullWidth component={Link} href="/quiz">
             Take Quiz
           </Button>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={3}>
+          <Button variant="contained" color="primary" fullWidth component={Link} href="/scores">
+            Quiz History
+          </Button>
+        </Grid>
+        <Grid item xs={12} sm={3}>
           <Button variant="contained" color="primary" fullWidth component={Link} href="/flashcards">
             Flashcards
           </Button>
