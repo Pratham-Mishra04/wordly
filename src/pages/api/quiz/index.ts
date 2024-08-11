@@ -1,8 +1,8 @@
 import Quiz from '@/models/quiz';
 import Word from '@/models/word';
 import connectToDB from '@/server/db';
-import type { NextApiRequest, NextApiResponse } from 'next';
 import { Option } from '@/types';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export const getAllQuizzes = async (req: NextApiRequest, res: NextApiResponse) => {
   await connectToDB();

@@ -1,4 +1,16 @@
-import { Button, Container, Typography, List, ListItem, ListItemText, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
+import {
+  Button,
+  Container,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+} from '@mui/material';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Word } from '@/types';
@@ -43,12 +55,9 @@ const Words: React.FC = () => {
         Add New Word
       </Button>
       <List>
-        {words.map((word) => (
+        {words.map(word => (
           <ListItem key={word._id}>
-            <ListItemText
-              primary={word.word}
-              secondary={`Meaning: ${word.meaning}`}
-            />
+            <ListItemText primary={word.word} secondary={`Meaning: ${word.meaning}`} />
           </ListItem>
         ))}
       </List>
@@ -64,7 +73,7 @@ const Words: React.FC = () => {
               fullWidth
               margin="normal"
               value={word}
-              onChange={(e) => setWord(e.target.value)}
+              onChange={e => setWord(e.target.value)}
               required
             />
             <TextField
@@ -73,7 +82,7 @@ const Words: React.FC = () => {
               fullWidth
               margin="normal"
               value={meaning}
-              onChange={(e) => setMeaning(e.target.value)}
+              onChange={e => setMeaning(e.target.value)}
               required
             />
             <TextField
@@ -84,7 +93,7 @@ const Words: React.FC = () => {
               multiline
               rows={4}
               value={examples}
-              onChange={(e) => setExamples(e.target.value)}
+              onChange={e => setExamples(e.target.value)}
               required
             />
             <DialogActions>

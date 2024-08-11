@@ -1,6 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import connectToDB from '@/server/db';
 import Word from '@/models/word';
+import connectToDB from '@/server/db';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Data = {
   success: boolean;

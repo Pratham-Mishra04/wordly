@@ -38,9 +38,7 @@ const QuizHistory: React.FC = () => {
                 <Typography variant="h6" gutterBottom>
                   Score: {quiz.score}/{quiz.questions.length}
                 </Typography>
-                <Typography variant="body1">
-                  Correct Answers: {quiz.correctCount}
-                </Typography>
+                <Typography variant="body1">Correct Answers: {quiz.correctCount}</Typography>
                 <Typography variant="body1" color="error">
                   Incorrect Answers: {quiz.incorrectCount}
                 </Typography>
