@@ -13,8 +13,8 @@ export const getAllQuizzes = async (req: NextApiRequest, res: NextApiResponse) =
       res.status(200).json({
         data: quizzes.map(quiz => ({
           score: quiz.score,
-          correctCount: quiz.correctCount,
-          incorrectCount: quiz.questions?.length - quiz.correctCount,
+          correctCount: quiz.score,
+          incorrectCount: quiz.questions?.length - quiz.score,
           date: quiz.created_at,
           questions: quiz.questions?.map((q: { question: string; correctAnswer: string; selectedAnswer: string }) => ({
             question: q.question,

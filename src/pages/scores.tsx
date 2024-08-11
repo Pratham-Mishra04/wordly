@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Container, Typography, Box, Button, List, ListItem, ListItemText, Divider } from '@mui/material';
+import { Container, Typography, Box, Button, Card, CardContent, Divider, CircularProgress } from '@mui/material';
 import { QuizResult } from '@/types';
 
 const QuizHistory: React.FC = () => {
   const [quizHistory, setQuizHistory] = useState<QuizResult[] | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchQuizHistory = async () => {
       try {
         const response = await axios.get('/api/quiz');
         setQuizHistory(response.data.data);
+        setLoading(false);
       } catch (error) {
         console.error('Failed to fetch quiz history:', error);
       }
@@ -20,55 +22,68 @@ const QuizHistory: React.FC = () => {
   }, []);
 
   return (
-    <Container>
-      <Typography variant="h2" gutterBottom>
+    <Container maxWidth="md">
+      <Typography variant="h2" align="center" gutterBottom>
         Quiz History
       </Typography>
-      {quizHistory ? (
-        <List>
+      {loading ? (
+        <Box display="flex" justifyContent="center" alignItems="center" height="80vh">
+          <CircularProgress />
+        </Box>
+      ) : quizHistory && quizHistory.length > 0 ? (
+        <Box>
           {quizHistory.map((quiz, index) => (
-            <Box key={index} mb={3}>
-              <ListItem>
-                <ListItemText
-                  primary={`Quiz ${index + 1}`}
-                  secondary={`Date: ${new Date(quiz.date).toLocaleDateString()}`}
-                />
-              </ListItem>
-              <Box pl={3} mb={2}>
-                <Typography variant="h6" gutterBottom>
-                  Score: {quiz.score}/{quiz.questions.length}
+            <Card key={index} sx={{ marginBottom: 3 }}>
+              <CardContent>
+                <Typography variant="h5" gutterBottom>
+                  Quiz {index + 1}
                 </Typography>
-                <Typography variant="body1">Correct Answers: {quiz.correctCount}</Typography>
-                <Typography variant="body1" color="error">
-                  Incorrect Answers: {quiz.incorrectCount}
+                <Typography variant="subtitle1" color="textSecondary">
+                  Date: {new Date(quiz.date).toLocaleDateString()}
                 </Typography>
-              </Box>
-              <Divider />
-              {quiz.questions.map((question, qIndex) => (
-                <Box key={qIndex} mt={2} mb={2} pl={3}>
-                  <Typography variant="h6">{question.question}</Typography>
-                  <Typography variant="body1">
-                    Your answer: <strong>{question.selectedAnswer}</strong>
+                <Divider sx={{ marginY: 2 }} />
+                <Box mb={2}>
+                  <Typography variant="h6" gutterBottom>
+                    Score: {quiz.score}/{quiz.questions.length}
                   </Typography>
-                  <Typography variant="body1">
-                    Correct answer: <strong>{question.correctAnswer}</strong>
+                  <Typography variant="body1" color="success.main">
+                    Correct Answers: {quiz.correctCount}
                   </Typography>
-                  {!question.isCorrect && (
-                    <Typography variant="body1" color="error">
-                      <em>Incorrect</em>
-                    </Typography>
-                  )}
+                  <Typography variant="body1" color="error.main">
+                    Incorrect Answers: {quiz.incorrectCount}
+                  </Typography>
                 </Box>
-              ))}
-            </Box>
+                <Divider sx={{ marginY: 2 }} />
+                {quiz.questions.map((question, qIndex) => (
+                  <Box key={qIndex} mb={2}>
+                    <Typography variant="h6">{question.question}</Typography>
+                    <Typography variant="body1">
+                      Your answer: <strong>{question.selectedAnswer}</strong>
+                    </Typography>
+                    <Typography variant="body1">
+                      Correct answer: <strong>{question.correctAnswer}</strong>
+                    </Typography>
+                    {!question.isCorrect && (
+                      <Typography variant="body1" color="error">
+                        <em>Incorrect</em>
+                      </Typography>
+                    )}
+                  </Box>
+                ))}
+              </CardContent>
+            </Card>
           ))}
-        </List>
+        </Box>
       ) : (
-        <Typography>Loading quiz history...</Typography>
+        <Typography align="center" variant="body1">
+          No quiz history available.
+        </Typography>
       )}
-      <Button variant="contained" color="primary" href="/quiz">
-        Take New Quiz
-      </Button>
+      <Box display="flex" justifyContent="center" mt={4}>
+        <Button variant="contained" color="primary" href="/quiz">
+          Take New Quiz
+        </Button>
+      </Box>
     </Container>
   );
 };
