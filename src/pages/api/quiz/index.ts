@@ -1,3 +1,4 @@
+import sessionCheck from '@/middlewares/session';
 import Quiz from '@/models/quiz';
 import Word from '@/models/word';
 import connectToDB from '@/server/db';
@@ -46,7 +47,7 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
       const allWords = await Word.find({ userId: req.session.user.id }).select('-_id');
 
       if (allWords.length < 4) {
-        return res.status(500).json({ success: false, error: 'Not enough words' });
+        return res.status(400).json({ success: false, error: 'Not enough words to start a quiz' });
       }
 
       const questions = words.map(word => {
@@ -86,17 +87,16 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const user = req.session?.user;
-  if (!user) return res.status(403).json({ success: false, error: 'You are not logged in' });
-
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   switch (req.method) {
     case 'GET':
       return getAllQuizzes(req, res);
     case 'POST':
       return createQuiz(req, res);
     default:
-      res.setHeader('Allow', ['GET', 'POST']);
-      return res.status(405).end(`Method ${req.method} Not Allowed`);
+      res.status(405).json({ success: false, error: 'Method not allowed' });
+      break;
   }
 }
+
+export default sessionCheck(handler);

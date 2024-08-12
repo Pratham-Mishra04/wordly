@@ -1,3 +1,4 @@
+import sessionCheck from '@/middlewares/session';
 import Quiz from '@/models/quiz';
 import connectToDB from '@/server/db';
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -42,14 +43,12 @@ export const submitQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const user = req.session?.user;
-  if (!user) return res.status(403).json({ success: false, error: 'You are not logged in' });
-
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     return submitQuiz(req, res);
   } else {
-    res.setHeader('Allow', ['POST']);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
+    res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 }
+
+export default sessionCheck(handler);

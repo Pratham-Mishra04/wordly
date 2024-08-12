@@ -54,7 +54,9 @@ const Words: React.FC = () => {
     <Container>
       <Navbar />
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Typography variant="h2">Words</Typography>
+        <Typography variant="h2" sx={{ marginTop: '16px' }}>
+          Words
+        </Typography>
         <Button variant="contained" color="primary" onClick={handleOpen}>
           Add New Word
         </Button>

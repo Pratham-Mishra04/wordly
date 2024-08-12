@@ -1,3 +1,4 @@
+import sessionCheck from '@/middlewares/session';
 import Quiz from '@/models/quiz'; // Import your Quiz model
 import Word from '@/models/word'; // Import your Word model
 import connectToDB from '@/server/db';
@@ -20,9 +21,6 @@ interface Mistake {
 }
 
 const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
-  const user = req.session?.user;
-  if (!user) return res.status(403).json({ success: false, error: 'You are not logged in' });
-
   await connectToDB();
 
   if (req.method === 'POST') {
@@ -75,7 +73,7 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
       const allWords = await Word.find({ userId: req.session.user.id }).select('-_id').exec();
 
       if (allWords.length < 4) {
-        return res.status(500).json({ success: false, error: 'Not enough words' });
+        return res.status(400).json({ success: false, error: 'Not enough words to start a quiz' });
       }
 
       const questions = prioritizedMistakes
@@ -114,9 +112,8 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
       res.status(500).json({ success: false, error: (error as Error).message });
     }
   } else {
-    res.setHeader('Allow', ['POST']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 };
 
-export default createPersonalizedQuiz;
+export default sessionCheck(createPersonalizedQuiz);

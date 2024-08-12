@@ -1,3 +1,4 @@
+import sessionCheck from '@/middlewares/session';
 import Word from '@/models/word';
 import connectToDB from '@/server/db';
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -8,12 +9,9 @@ type Data = {
   error?: string;
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const { method } = req;
   const { wid } = req.query;
-
-  const user = req.session?.user;
-  if (!user) return res.status(403).json({ success: false, error: 'You are not logged in' });
 
   await connectToDB();
 
@@ -80,3 +78,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       break;
   }
 }
+
+export default sessionCheck(handler);

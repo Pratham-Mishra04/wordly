@@ -22,7 +22,7 @@ const Flashcards: React.FC = () => {
   return (
     <Container>
       <Navbar />
-      <Typography variant="h2" gutterBottom>
+      <Typography variant="h2" sx={{ marginY: '16px' }}>
         Flashcards
       </Typography>
       <Grid container spacing={2}>

@@ -13,22 +13,28 @@ const Quiz: React.FC = () => {
   const [quizCompleted, setQuizCompleted] = useState<boolean>(false);
   const [score, setScore] = useState<number>(0);
   const [results, setResults] = useState<Array<any> | null>(null);
-  const [quizLength, setQuizLength] = useState<number>(3); // Default quiz length
+  const [quizLength, setQuizLength] = useState<number>(3);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleQuizLengthChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setQuizLength(Number(event.target.value));
   };
 
   const handleCreateQuiz = async (type: string) => {
-    const response = await axios.post(`/api/quiz/${type}`, { length: quizLength });
-    setQuestions(response.data.data.questions);
+    try {
+      setErrorMessage('');
+      const response = await axios.post(`/api/quiz/${type}`, { length: quizLength });
+      setQuestions(response.data.data.questions);
+    } catch (err) {
+      setErrorMessage((err as any)?.response?.data.error || '');
+    }
   };
 
   return (
     <Container>
       <Navbar />
       <Container maxWidth="sm">
-        <Typography variant="h2" align="center" gutterBottom>
+        <Typography variant="h2" align="center" sx={{ marginY: '16px' }}>
           Quiz
         </Typography>
         {!quizCompleted ? (
@@ -62,6 +68,9 @@ const Quiz: React.FC = () => {
               >
                 Personalized Quiz
               </Button>
+              <Typography variant="body1" color="error" sx={{ marginTop: 2 }}>
+                {errorMessage}
+              </Typography>
             </Paper>
           ) : (
             <LiveQuiz

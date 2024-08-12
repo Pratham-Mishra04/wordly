@@ -54,33 +54,33 @@ const Navbar: React.FC = () => {
         {session && (
           <>
             {session.user && (
-              <Box sx={{ ml: 2, display: 'flex', alignItems: 'center' }}>
-                {session.user.image && (
-                  <Box sx={{ width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', mr: 2 }}>
-                    <Image
-                      src={session.user.image}
-                      alt={session.user.name || 'User'}
-                      width={40}
-                      height={40}
-                      layout="responsive"
-                      objectFit="cover"
-                    />
-                  </Box>
-                )}
-                <Typography variant="body1" sx={{ marginRight: 2 }}>
-                  {session.user.name || 'User'}
-                </Typography>
-                <Button color="inherit" onClick={handleLogout}>
-                  Logout
-                </Button>
+              <Box sx={{ ml: 2, display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <Breadcrumbs aria-label="breadcrumb">
+                  <Link color="inherit" href="/" sx={{ cursor: 'pointer' }}>
+                    Home
+                  </Link>
+                  {generateBreadcrumbs()}
+                </Breadcrumbs>
+                <Box sx={{ ml: 2, display: 'flex', alignItems: 'center', gap: '2px' }}>
+                  {session.user.image && (
+                    <Box sx={{ width: 32, height: 32, borderRadius: '50%', overflow: 'hidden' }}>
+                      <Image
+                        src={session.user.image}
+                        alt={session.user.name || 'User'}
+                        width={32}
+                        height={32}
+                        layout="responsive"
+                        objectFit="cover"
+                      />
+                    </Box>
+                  )}
+                  {/* <Typography variant="body1">{session.user.name || 'User'}</Typography> */}
+                  <Button color="inherit" onClick={handleLogout}>
+                    Logout
+                  </Button>
+                </Box>
               </Box>
             )}
-            <Breadcrumbs aria-label="breadcrumb">
-              <Link color="inherit" href="/" sx={{ cursor: 'pointer' }}>
-                Home
-              </Link>
-              {generateBreadcrumbs()}
-            </Breadcrumbs>
           </>
         )}
         {!session && (
