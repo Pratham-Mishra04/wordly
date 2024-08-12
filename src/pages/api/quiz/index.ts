@@ -40,18 +40,10 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
     const { length } = req.body;
 
     try {
-      // Retrieve words that have examples
-      const words = await Word.aggregate([
-        { $match: { examples: { $exists: true, $ne: [] } } },
-        { $sample: { size: length } },
-      ]);
+      // Fetch all words belonging to the user that have examples
+      const words = await Word.find({ userId: req.session.user.id, examples: { $exists: true, $ne: [] } }).exec();
 
-      const allWords = await Word.find({ userId: req.session.user.id }).select('-_id');
-
-      if (allWords.length < 4) {
-        return res.status(400).json({ success: false, error: 'Not enough words to start a quiz' });
-      }
-
+      // Filter and generate questions
       const questions = words
         .map(word => {
           // Find all examples that include the word
@@ -60,33 +52,51 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
             return null;
           }
 
+          // Select a random example
           const example = validExamples[Math.floor(Math.random() * validExamples.length)];
 
+          // Create the question by replacing the word in the example with a blank
           const question = example.replace(word.word, '____');
+
+          // Define the correct option
           const correctOption: Option = {
             value: word.word,
             isCorrect: true,
           };
 
+          // Generate three incorrect options
           const options: Option[] = [correctOption];
           while (options.length < 4) {
-            const randomWord = allWords[Math.floor(Math.random() * allWords.length)].word;
+            const randomWord = words[Math.floor(Math.random() * words.length)].word;
             if (randomWord !== word.word && !options.some(opt => opt.value === randomWord)) {
               options.push({ value: randomWord, isCorrect: false });
             }
           }
 
+          // Shuffle the options
           const shuffledOptions = options.sort(() => Math.random() - 0.5);
 
+          const correctAnswer = words.filter(w => w.word == correctOption.value)[0];
+          if (!correctAnswer) return null;
+
+          // Return the question object
           return {
             question,
             options: shuffledOptions.map(opt => opt.value),
-            correctAnswer: allWords.filter(word => word.word == correctOption.value)[0],
+            correctAnswer,
           };
         })
-        .filter(question => question !== null);
+        .filter((question): question is NonNullable<typeof question> => question !== null);
 
-      res.status(200).json({ success: true, data: { questions } });
+      // If the number of generated questions exceeds the required length, slice the array
+      const finalQuestions = questions.slice(0, length);
+
+      // Check if there are enough questions after filtering
+      if (finalQuestions.length < length) {
+        return res.status(400).json({ success: false, error: 'Not enough valid questions to start a quiz' });
+      }
+
+      res.status(200).json({ success: true, data: { questions: finalQuestions } });
     } catch (error) {
       res.status(500).json({ success: false, error: (error as Error).message });
     }

@@ -110,7 +110,7 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
             correctAnswer: allWords.filter(word => word.word == correctOption.value)[0],
           };
         })
-        .filter((q): q is NonNullable<typeof q> => q !== null);
+        .filter((q): q is NonNullable<typeof q> => q !== null && q.correctAnswer !== null);
 
       if (questions.length == 0) {
         return res.status(400).json({ success: false, error: 'Not enough quizzes taken for personalized quiz' });
