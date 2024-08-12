@@ -18,13 +18,27 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   switch (method) {
     case 'GET':
       try {
-        const words = wid
-          ? await Word.findById(wid)
-          : await Word.find({ userId: req.session.user.id }).sort({ created_at: -1 });
-        if (!words) {
-          return res.status(404).json({ success: false, error: 'Word not found' });
+        const { query, wid, page = 1, limit = 10 } = req.query;
+
+        const pageNumber = parseInt(page as string, 10);
+        const pageLimit = parseInt(limit as string, 10);
+
+        if (wid) {
+          const word = await Word.findById(wid);
+          if (!word) {
+            return res.status(404).json({ success: false, error: 'Word not found' });
+          }
+          return res.status(200).json({ success: true, data: word });
+        } else {
+          const searchQuery = query ? { word: new RegExp(query as string, 'i') } : {};
+
+          const words = await Word.find({ userId: req.session.user.id, ...searchQuery })
+            .sort({ created_at: -1 })
+            .skip((Number(pageNumber) - 1) * Number(pageLimit))
+            .limit(Number(pageLimit));
+
+          res.status(200).json({ success: true, data: words });
         }
-        res.status(200).json({ success: true, data: words });
       } catch (error) {
         res.status(400).json({ success: false, error: (error as Error).message });
       }

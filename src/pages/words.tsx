@@ -1,4 +1,4 @@
-import { Button, Container, Typography, List, Box } from '@mui/material';
+import { Button, Container, Typography, List, Box, CircularProgress, TextField } from '@mui/material';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Word } from '@/types';
@@ -8,19 +8,36 @@ import { GetServerSidePropsContext } from 'next';
 import WordComponent from '@/components/word';
 import AddWordModal from '@/components/add_word';
 import BulkAddModal from '@/components/add_words_buck';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 const Words: React.FC = () => {
   const [words, setWords] = useState<Word[]>([]);
   const [open, setOpen] = useState<boolean>(false);
   const [bulkAddOpen, setBulkAddOpen] = useState<boolean>(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  const fetchWords = async (initialPage?: number) => {
+    try {
+      const response = await axios.get(
+        `/api/words?page=${initialPage ? initialPage : page}&limit=10&query=${searchQuery}`
+      );
+      const addedWords = response.data.data;
+      if (initialPage) setWords(addedWords);
+      else setWords(prevWords => [...prevWords, ...addedWords]);
+      setHasMore(addedWords.length > 0);
+      setPage(prev => prev + 1);
+    } catch (error) {
+      console.error('Error fetching words:', error);
+    }
+  };
 
   useEffect(() => {
-    async function fetchWords() {
-      const response = await axios.get('/api/words');
-      setWords(response.data.data);
-    }
-    fetchWords();
-  }, []);
+    setPage(1);
+    fetchWords(1);
+    setWords([]);
+  }, [searchQuery]);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -28,27 +45,49 @@ const Words: React.FC = () => {
   const handleBulkAddOpen = () => setBulkAddOpen(true);
   const handleBulkAddClose = () => setBulkAddOpen(false);
 
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
+
   return (
     <Container>
       <Navbar />
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Typography variant="h2" sx={{ marginTop: '16px' }}>
-          Words
-        </Typography>
-        <Box>
-          <Button variant="contained" color="primary" onClick={handleOpen}>
-            Add New Word
-          </Button>
-          <Button variant="outlined" color="secondary" onClick={handleBulkAddOpen} sx={{ ml: 2 }}>
-            Add Words in Bulk
-          </Button>
+      <Box display="flex" flexDirection="column" sx={{ marginTop: '16px' }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="h2">Words</Typography>
+          <Box>
+            <Button variant="contained" color="primary" onClick={handleOpen}>
+              Add New Word
+            </Button>
+            <Button variant="outlined" color="secondary" onClick={handleBulkAddOpen} sx={{ ml: 2 }}>
+              Add Words in Bulk
+            </Button>
+          </Box>
         </Box>
+        <TextField
+          label="Search Words"
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          value={searchQuery}
+          onChange={handleSearchChange}
+        />
       </Box>
-      <List>
-        {words.map((word, index) => (
-          <WordComponent key={index} index={index} word={word} setWords={setWords} />
-        ))}
-      </List>
+
+      <InfiniteScroll
+        style={{ overflowY: 'hidden' }}
+        dataLength={words.length}
+        next={fetchWords}
+        hasMore={hasMore}
+        loader={<></>}
+      >
+        <List>
+          {words.map((word, index) => (
+            <WordComponent key={index} index={index} word={word} setWords={setWords} />
+          ))}
+        </List>
+      </InfiniteScroll>
+
       <AddWordModal open={open} onClose={handleClose} setWords={setWords} />
       <BulkAddModal open={bulkAddOpen} onClose={handleBulkAddClose} setWords={setWords} />
     </Container>
