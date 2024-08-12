@@ -1,6 +1,6 @@
 import { Word } from '@/types';
-import React, { Dispatch, SetStateAction, useState } from 'react';
-import { Typography, Card, CardContent, Grid, Collapse } from '@mui/material';
+import React, { Dispatch, SetStateAction } from 'react';
+import { Typography, Card, CardContent, Collapse, Box } from '@mui/material';
 
 interface Props {
   index: number;
@@ -10,34 +10,30 @@ interface Props {
 }
 
 const Flashcard = ({ index, word, expandedCard, setExpandedCard }: Props) => {
-  const [showCard, setShowCard] = useState(false);
+  const isExpanded = expandedCard === index;
 
-  const handleCardClick = (index: number) => {
+  const handleCardClick = () => {
     if (setExpandedCard) setExpandedCard(prev => (prev === index ? null : index));
-    else setShowCard(prev => !prev);
-  };
-
-  const isClicked = () => {
-    if (expandedCard != null || expandedCard != undefined) return expandedCard === index;
-    return showCard;
   };
 
   return (
-    <Grid item xs={12} sm={6} md={4} key={index}>
-      <Card
-        onClick={() => handleCardClick(index)}
-        sx={{
-          cursor: 'pointer',
-          transition: 'transform 0.2s',
-          transform: isClicked() ? 'scale(1.05)' : 'scale(1)',
-          boxShadow: isClicked() ? 6 : 2,
-        }}
-      >
-        <CardContent>
-          <Typography variant="h5" gutterBottom>
-            {word.word}
-          </Typography>
-          <Collapse in={isClicked()}>
+    <Card
+      onClick={handleCardClick}
+      sx={{
+        cursor: 'pointer',
+        transition: '0.3s',
+        transform: isExpanded ? 'scale(1.025)' : 'scale(1)',
+        zIndex: isExpanded ? 1 : 'auto',
+        boxShadow: isExpanded ? 8 : 4,
+        borderRadius: '12px',
+        overflow: 'hidden',
+        marginBottom: 2,
+      }}
+    >
+      <CardContent>
+        <Typography variant="h5">{word.word}</Typography>
+        <Collapse in={isExpanded}>
+          <Box sx={{ mt: 2 }}>
             <Typography variant="body1" color="textSecondary">
               <strong>Meaning:</strong> {word.meaning}
             </Typography>
@@ -53,15 +49,17 @@ const Flashcard = ({ index, word, expandedCard, setExpandedCard }: Props) => {
             <Typography variant="body2" color="textSecondary" mt={2}>
               <strong>Examples:</strong>
             </Typography>
-            {word.examples?.map((example, i) => (
-              <Typography key={i} variant="body2" color="textSecondary">
-                - {example}
-              </Typography>
-            ))}
-          </Collapse>
-        </CardContent>
-      </Card>
-    </Grid>
+            {word.examples
+              ?.filter((_, i) => i < 2)
+              .map((example, i) => (
+                <Typography key={i} variant="body2" color="textSecondary" mt={1}>
+                  - {example}
+                </Typography>
+              ))}
+          </Box>
+        </Collapse>
+      </CardContent>
+    </Card>
   );
 };
 

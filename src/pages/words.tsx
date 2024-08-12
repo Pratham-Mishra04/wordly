@@ -21,7 +21,7 @@ const Words: React.FC = () => {
   const fetchWords = async (initialPage?: number) => {
     try {
       const response = await axios.get(
-        `/api/words?page=${initialPage ? initialPage : page}&limit=10&query=${searchQuery}`
+        `/api/words?page=${initialPage ? initialPage : page}&limit=20&query=${searchQuery}`
       );
       const addedWords = response.data.data;
       if (initialPage) setWords(addedWords);

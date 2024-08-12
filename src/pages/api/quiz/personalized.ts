@@ -107,6 +107,10 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
         })
         .filter((q): q is NonNullable<typeof q> => q !== null);
 
+      if (questions.length == 0) {
+        return res.status(400).json({ success: false, error: 'Not enough quizzes taken for personalized quiz' });
+      }
+
       res.status(200).json({ success: true, data: { questions } });
     } catch (error) {
       res.status(500).json({ success: false, error: (error as Error).message });
