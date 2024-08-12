@@ -31,8 +31,8 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
 
       const mistakes: Mistake[] = quizzes.flatMap(quiz =>
         quiz.questions
-          .filter((q: QuizQuestion) => q.selectedAnswer !== q.correctAnswer)
-          .map((q: QuizQuestion) => ({
+          .filter((q: any) => q.selectedAnswer !== q.correctAnswer)
+          .map((q: any) => ({
             question: q.question || '',
             correctAnswer: q.correctAnswer || '',
             selectedAnswer: q.selectedAnswer || '',
@@ -41,20 +41,21 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
           }))
       );
 
-      // Calculate generic counts
+      // Calculate mistake counts
       const mistakeCountMap: Record<string, Mistake> = mistakes.reduce((map, mistake) => {
         const key = mistake.question;
+
         if (!map[key]) {
           map[key] = { ...mistake, count: 1 };
         } else {
-          map[key].count = (map[key].count || 0) + 1;
+          map[key].count += 1;
         }
+
         return map;
       }, {} as Record<string, Mistake>);
 
-      // Calculate recency factor and update counts
+      // Prioritize mistakes by recency
       const now = new Date();
-
       const prioritizedMistakes = Object.values(mistakeCountMap)
         .map(mistake => {
           const daysSinceMistake = Math.max(
@@ -62,13 +63,12 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
             Math.ceil((now.getTime() - mistake.created_at.getTime()) / (24 * 60 * 60 * 1000))
           );
           const recencyFactor = daysSinceMistake <= 14 ? 5 - (5 * daysSinceMistake) / 14 : 0;
-
           return {
             ...mistake,
-            count: (mistake.count || 0) * recencyFactor,
+            count: mistake.count * recencyFactor,
           };
         })
-        .sort((a, b) => (b.count || 0) - (a.count || 0));
+        .sort((a, b) => b.count - a.count);
 
       const allWords = await Word.find({ userId: req.session.user.id }).select('-_id').exec();
 
@@ -76,23 +76,55 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ success: false, error: 'Not enough words to start a quiz' });
       }
 
-      const questions = prioritizedMistakes
-        .slice(0, length)
-        .map(mistake => {
-          if (!mistake.correctAnswer) return null;
+      const questions: any[] = [];
+      for (const mistake of prioritizedMistakes) {
+        if (questions.length >= length) break;
 
-          const word = allWords.find(w => w.word === mistake.correctAnswer);
-          if (!word) return null;
+        const word = allWords.find(w => w.word === mistake.correctAnswer);
+        if (!word) continue;
 
-          // Filter examples that contain the word and select one randomly
+        const validExamples = word.examples.filter(ex => ex.includes(word.word));
+        if (validExamples.length === 0) continue;
+
+        const example = validExamples[Math.floor(Math.random() * validExamples.length)];
+        const questionText = example.replace(word.word, '____');
+        const correctOption: Option = { value: word.word, isCorrect: true };
+
+        const options: Option[] = [correctOption];
+        while (options.length < 4) {
+          const randomWord = allWords[Math.floor(Math.random() * allWords.length)].word;
+          if (!options.some(opt => opt.value === randomWord) && randomWord !== correctOption.value) {
+            options.push({ value: randomWord, isCorrect: false });
+          }
+        }
+
+        const shuffledOptions = options.sort(() => Math.random() - 0.5);
+
+        const correctAnswer = allWords.filter(w => w.word == correctOption.value)[0];
+        if (!correctAnswer) continue;
+
+        questions.push({
+          question: questionText,
+          options: shuffledOptions.map(opt => opt.value),
+          correctAnswer,
+        });
+      }
+
+      // If we have fewer questions than needed, add more from available words
+      if (questions.length < length) {
+        const additionalWords = allWords.filter(word => !questions.some(q => q.correctAnswer === word.word));
+
+        while (questions.length < length && additionalWords.length > 0) {
+          const word = additionalWords.pop();
+          if (!word) break;
+
           const validExamples = word.examples.filter(ex => ex.includes(word.word));
-          if (validExamples.length === 0) return null;
+          if (validExamples.length === 0) continue;
 
           const example = validExamples[Math.floor(Math.random() * validExamples.length)];
           const questionText = example.replace(word.word, '____');
           const correctOption: Option = { value: word.word, isCorrect: true };
 
-          // Generate options
           const options: Option[] = [correctOption];
           while (options.length < 4) {
             const randomWord = allWords[Math.floor(Math.random() * allWords.length)].word;
@@ -101,19 +133,21 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
             }
           }
 
-          // Shuffle options
           const shuffledOptions = options.sort(() => Math.random() - 0.5);
 
-          return {
+          const correctAnswer = allWords.filter(w => w.word == correctOption.value)[0];
+          if (!correctAnswer) continue;
+
+          questions.push({
             question: questionText,
             options: shuffledOptions.map(opt => opt.value),
-            correctAnswer: allWords.filter(word => word.word == correctOption.value)[0],
-          };
-        })
-        .filter((q): q is NonNullable<typeof q> => q !== null && q.correctAnswer !== null);
+            correctAnswer,
+          });
+        }
+      }
 
-      if (questions.length == 0) {
-        return res.status(400).json({ success: false, error: 'Not enough quizzes taken for personalized quiz' });
+      if (questions.length === 0) {
+        return res.status(400).json({ success: false, error: 'Not enough quizzes taken for a personalized quiz' });
       }
 
       res.status(200).json({ success: true, data: { questions } });
