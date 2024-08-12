@@ -1,5 +1,5 @@
 import { Word } from '@/types';
-import React, { Dispatch, SetStateAction } from 'react';
+import React, { Dispatch, SetStateAction, useState } from 'react';
 import { Typography, Card, CardContent, Collapse, Box } from '@mui/material';
 
 interface Props {
@@ -10,10 +10,16 @@ interface Props {
 }
 
 const Flashcard = ({ index, word, expandedCard, setExpandedCard }: Props) => {
-  const isExpanded = expandedCard === index;
+  const [clicked, setClicked] = useState(false);
+
+  const isExpanded = () => {
+    if (expandedCard) return expandedCard === index;
+    return clicked;
+  };
 
   const handleCardClick = () => {
     if (setExpandedCard) setExpandedCard(prev => (prev === index ? null : index));
+    else setClicked(prev => !prev);
   };
 
   return (
@@ -22,9 +28,9 @@ const Flashcard = ({ index, word, expandedCard, setExpandedCard }: Props) => {
       sx={{
         cursor: 'pointer',
         transition: '0.3s',
-        transform: isExpanded ? 'scale(1.025)' : 'scale(1)',
-        zIndex: isExpanded ? 1 : 'auto',
-        boxShadow: isExpanded ? 8 : 4,
+        transform: isExpanded() ? 'scale(1.025)' : 'scale(1)',
+        zIndex: isExpanded() ? 1 : 'auto',
+        boxShadow: isExpanded() ? 8 : 4,
         borderRadius: '12px',
         overflow: 'hidden',
         marginBottom: 2,
@@ -32,7 +38,7 @@ const Flashcard = ({ index, word, expandedCard, setExpandedCard }: Props) => {
     >
       <CardContent>
         <Typography variant="h5">{word.word}</Typography>
-        <Collapse in={isExpanded}>
+        <Collapse in={isExpanded()}>
           <Box sx={{ mt: 2 }}>
             <Typography variant="body1" color="textSecondary">
               <strong>Meaning:</strong> {word.meaning}

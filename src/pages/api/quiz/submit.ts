@@ -21,6 +21,7 @@ export const submitQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
 
       // Create a new quiz entry
       const newQuiz = new Quiz({
+        userId: req.session.user.id,
         questions,
         score: correctAnswers,
         length: totalQuestions,
