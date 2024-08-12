@@ -10,10 +10,10 @@ import {
   Box,
   Container,
   Paper,
-  Divider,
 } from '@mui/material';
 import { Question } from '@/types';
 import axios from 'axios';
+import Flashcard from '@/components/flashcard'; // Import the Flashcard component
 
 interface Props {
   questions: Question[];
@@ -27,14 +27,17 @@ const LiveQuiz = ({ questions, setQuizCompleted, setScore, setResults }: Props) 
   const [feedback, setFeedback] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Map<number, string>>(new Map());
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [showFlashcard, setShowFlashcard] = useState<boolean>(false); // State to control flashcard visibility
 
   const handleAnswerSelect = (option: string) => {
     if (questions && !selectedAnswer) {
       const currentQuestion = questions[currentIndex];
-      if (option === currentQuestion.correctAnswer) {
+      if (option === currentQuestion.correctAnswer.word) {
         setFeedback('Correct!');
+        setShowFlashcard(false); // Hide flashcard on correct answer
       } else {
-        setFeedback(`Incorrect! The correct answer is: ${currentQuestion.correctAnswer}`);
+        setFeedback(`Incorrect! The correct answer is: ${currentQuestion.correctAnswer.word}`);
+        setShowFlashcard(true); // Show flashcard on incorrect answer
       }
       setSelectedAnswer(option);
     }
@@ -45,6 +48,7 @@ const LiveQuiz = ({ questions, setQuizCompleted, setScore, setResults }: Props) 
       setAnswers(new Map(answers.set(currentIndex, selectedAnswer)));
       setSelectedAnswer(null);
       setFeedback(null); // Clear feedback for the next question
+      setShowFlashcard(false); // Hide flashcard when moving to the next question
       setCurrentIndex(currentIndex + 1);
     }
   };
@@ -58,7 +62,7 @@ const LiveQuiz = ({ questions, setQuizCompleted, setScore, setResults }: Props) 
       const response = await axios.post('/api/quiz/submit', {
         questions: questions.map((q, index) => ({
           question: q.question,
-          correctAnswer: q.correctAnswer,
+          correctAnswer: q.correctAnswer.word,
           selectedAnswer: answers.get(index),
         })),
       });
@@ -90,12 +94,12 @@ const LiveQuiz = ({ questions, setQuizCompleted, setScore, setResults }: Props) 
                 label={option}
                 sx={{
                   color:
-                    selectedAnswer === option && option !== questions[currentIndex]?.correctAnswer
+                    selectedAnswer === option && option !== questions[currentIndex]?.correctAnswer.word
                       ? 'error.main'
                       : 'text.primary',
                   fontWeight: selectedAnswer === option ? 'bold' : 'normal',
                   textDecoration:
-                    selectedAnswer === option && option !== questions[currentIndex]?.correctAnswer
+                    selectedAnswer === option && option !== questions[currentIndex]?.correctAnswer.word
                       ? 'line-through'
                       : 'none',
                 }}
@@ -110,6 +114,11 @@ const LiveQuiz = ({ questions, setQuizCompleted, setScore, setResults }: Props) 
           >
             {feedback}
           </Typography>
+        )}
+        {showFlashcard && (
+          <Box sx={{ marginTop: 2 }}>
+            <Flashcard index={0} word={questions[currentIndex]?.correctAnswer} />
+          </Box>
         )}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
           {currentIndex === questions.length - 1 ? (

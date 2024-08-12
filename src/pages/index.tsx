@@ -1,9 +1,11 @@
+import Navbar from '@/components/navbar';
 import { Button, Container, Typography, Grid } from '@mui/material';
 import Link from 'next/link';
 
 export default function Home() {
   return (
     <Container>
+      <Navbar />
       <Typography variant="h2" gutterBottom>
         Dashboard
       </Typography>

@@ -43,7 +43,7 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
       const words = await Word.aggregate([{ $sample: { size: length } }]);
 
       // Retrieve all words for option generation
-      const allWords = await Word.find({}).select('word -_id');
+      const allWords = await Word.find({}).select('-_id');
 
       const questions = words.map(word => {
         const example = word.examples[0];
@@ -68,7 +68,7 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
         return {
           question,
           options: shuffledOptions.map(opt => opt.value),
-          correctAnswer: correctOption.value,
+          correctAnswer: allWords.filter(w => w.word == correctOption.value)[0],
         };
       });
 

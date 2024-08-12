@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Container, Typography, Box, Button, Card, CardContent, Divider, CircularProgress } from '@mui/material';
 import { QuizResult } from '@/types';
+import Navbar from '@/components/navbar';
 
 const QuizHistory: React.FC = () => {
   const [quizHistory, setQuizHistory] = useState<QuizResult[] | null>(null);
@@ -22,8 +23,9 @@ const QuizHistory: React.FC = () => {
   }, []);
 
   return (
-    <Container maxWidth="md">
-      <Typography variant="h2" align="center" gutterBottom>
+    <Container>
+      <Navbar />
+      <Typography variant="h2" gutterBottom>
         Quiz History
       </Typography>
       {loading ? (
@@ -35,12 +37,12 @@ const QuizHistory: React.FC = () => {
           {quizHistory.map((quiz, index) => (
             <Card key={index} sx={{ marginBottom: 3 }}>
               <CardContent>
-                <Typography variant="h5" gutterBottom>
-                  Quiz {index + 1}
-                </Typography>
-                <Typography variant="subtitle1" color="textSecondary">
-                  Date: {new Date(quiz.date).toLocaleDateString()}
-                </Typography>
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Typography variant="h5">Quiz {index + 1}</Typography>
+                  <Typography variant="subtitle1" color="textSecondary">
+                    Date: {new Date(quiz.date).toLocaleDateString()}
+                  </Typography>
+                </Box>
                 <Divider sx={{ marginY: 2 }} />
                 <Box mb={2}>
                   <Typography variant="h6" gutterBottom>
@@ -54,22 +56,26 @@ const QuizHistory: React.FC = () => {
                   </Typography>
                 </Box>
                 <Divider sx={{ marginY: 2 }} />
-                {quiz.questions.map((question, qIndex) => (
-                  <Box key={qIndex} mb={2}>
-                    <Typography variant="h6">{question.question}</Typography>
-                    <Typography variant="body1">
-                      Your answer: <strong>{question.selectedAnswer}</strong>
-                    </Typography>
-                    <Typography variant="body1">
-                      Correct answer: <strong>{question.correctAnswer}</strong>
-                    </Typography>
-                    {!question.isCorrect && (
-                      <Typography variant="body1" color="error">
-                        <em>Incorrect</em>
-                      </Typography>
-                    )}
-                  </Box>
-                ))}
+                <ul>
+                  {quiz.questions.map((question, qIndex) => (
+                    <li key={qIndex}>
+                      <Box mb={2}>
+                        <Typography variant="h6">{question.question}</Typography>
+                        <Typography variant="body1">
+                          Your answer: <strong>{question.selectedAnswer}</strong>
+                        </Typography>
+                        <Typography variant="body1">
+                          Correct answer: <strong>{question.correctAnswer}</strong>
+                        </Typography>
+                        {!question.isCorrect && (
+                          <Typography variant="body1" color="error">
+                            <em>Incorrect</em>
+                          </Typography>
+                        )}
+                      </Box>
+                    </li>
+                  ))}
+                </ul>
               </CardContent>
             </Card>
           ))}
