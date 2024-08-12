@@ -1,0 +1,42 @@
+version: '3.8'
+
+networks:
+  wordy-network:
+    driver: bridge
+
+services:
+  wordy:
+    container_name: wordy
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 3001:3001
+    depends_on:
+      - mongo
+    volumes:
+      - ./public:/app/public/
+    networks:
+      - wordy-network
+
+  mongo:
+    container_name: mongo-db
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - wordy-network
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.stats().ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  mongo-data:
+    name: mongo-data
+    driver: local
