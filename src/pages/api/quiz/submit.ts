@@ -13,13 +13,11 @@ export const submitQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
       res.status(400).json({ success: false, error: 'No questions in the quiz.' });
 
     try {
-      // Calculate the score based on user answers and correct answers
       const totalQuestions = questions.length;
       const correctAnswers = questions.filter(
         (q: { correctAnswer: string; selectedAnswer: string | null }) => q.correctAnswer === q.selectedAnswer
       ).length;
 
-      // Create a new quiz entry
       const newQuiz = new Quiz({
         userId: req.session.user.id,
         questions,
@@ -27,7 +25,6 @@ export const submitQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
         length: totalQuestions,
       });
 
-      // Save to database
       await newQuiz.save();
 
       const results = questions.map((q: any) => ({

@@ -51,9 +51,18 @@ async function fetchFromWeb(word: string) {
     );
     const partOfSpeech = partOfSpeechMatch ? partOfSpeechMatch[0].toLowerCase() : '';
 
-    // Extract the definition (first occurrence)
-    const definitionElement = $(`.NZKOFkdkcvYgD3lqOIJw`).first();
-    const definition = definitionElement.length > 0 ? definitionElement.text().trim() : '';
+    // Extract and join the text from all elements
+    const definitionElements = $(`.NZKOFkdkcvYgD3lqOIJw`);
+    const definition = definitionElements
+      .filter((index: number, element: any) => {
+        // Check if the element has a child div with text
+        return $(element).find('div').text().trim().length > 0;
+      })
+      .map((index: number, element: any) => {
+        return $(element).text().trim().replace(':', '');
+      })
+      .get()
+      .join('; ');
 
     // Extract all examples
     const examples: string[] = [];
@@ -92,11 +101,10 @@ async function fetchAndCombineData(word: string): Promise<Word | null> {
         ...webData.examples,
         ...firstMeaning.definitions.flatMap((def: any) => (def.example ? [def.example] : [])),
       ];
-      const combinedDefinition = webData.definition || firstMeaning.definitions[0]?.definition;
 
       const shapedWord: Word = {
         word: webData.word || wordData.word,
-        meaning: combinedDefinition,
+        meaning: webData.definition || firstMeaning.definitions[0]?.definition,
         partOfSpeech: webData.partOfSpeech || firstMeaning.partOfSpeech,
         examples: combinedExamples,
         synonyms: wordData.synonyms || [],
