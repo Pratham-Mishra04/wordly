@@ -18,7 +18,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   switch (method) {
     case 'GET':
       try {
-        const words = wid ? await Word.findById(wid) : await Word.find({ userId: req.session.user.id });
+        const words = wid
+          ? await Word.findById(wid)
+          : await Word.find({ userId: req.session.user.id }).sort({ created_at: -1 });
         if (!words) {
           return res.status(404).json({ success: false, error: 'Word not found' });
         }
