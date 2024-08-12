@@ -45,6 +45,10 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
       // Retrieve all words for option generation
       const allWords = await Word.find({}).select('-_id');
 
+      if (allWords.length < 4) {
+        return res.status(500).json({ success: false, error: 'Not enough words' });
+      }
+
       const questions = words.map(word => {
         const example = word.examples[0];
         const question = example.replace(word.word, '____');

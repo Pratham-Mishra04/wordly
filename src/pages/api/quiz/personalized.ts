@@ -71,6 +71,10 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
 
       const allWords = await Word.find({}).select('-_id').exec();
 
+      if (allWords.length < 4) {
+        return res.status(500).json({ success: false, error: 'Not enough words' });
+      }
+
       const questions = prioritizedMistakes
         .slice(0, length)
         .map(mistake => {
