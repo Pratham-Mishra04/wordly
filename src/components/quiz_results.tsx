@@ -39,7 +39,7 @@ const QuizResults = ({ score, results }: Props) => {
           </Box>
         ))}
         <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 3 }}>
-          <Button variant="contained" color="primary">
+          <Button variant="contained" color="primary" onClick={() => window.location.reload()}>
             Start New Quiz
           </Button>
         </Box>

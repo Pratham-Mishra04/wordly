@@ -8,9 +8,9 @@ interface IWord extends Document {
 }
 
 const WordSchema: Schema<IWord> = new mongoose.Schema({
-  word: { type: String, required: true },
-  meaning: { type: String, required: true },
-  examples: { type: [String], required: true },
+  word: { type: String, required: true, unique: true, lowercase: true },
+  meaning: { type: String },
+  examples: { type: [String] },
   created_at: { type: Date, default: Date.now },
 });
 

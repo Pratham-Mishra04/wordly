@@ -15,7 +15,7 @@ const QuizHistory: React.FC = () => {
         setQuizHistory(response.data.data);
         setLoading(false);
       } catch (error) {
-        console.error('Failed to fetch quiz history:', error);
+        console.log('Failed to fetch quiz history:', error);
       }
     };
 

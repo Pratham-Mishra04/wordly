@@ -17,8 +17,8 @@ const Quiz: React.FC = () => {
     setQuizLength(Number(event.target.value));
   };
 
-  const handleCreateQuiz = async () => {
-    const response = await axios.post('/api/quiz', { length: quizLength });
+  const handleCreateQuiz = async (type: string) => {
+    const response = await axios.post(`/api/quiz/${type}`, { length: quizLength });
     setQuestions(response.data.data.questions);
   };
 
@@ -44,8 +44,21 @@ const Quiz: React.FC = () => {
                 sx={{ marginBottom: 2, width: '100%' }}
                 variant="outlined"
               />
-              <Button variant="contained" color="primary" onClick={handleCreateQuiz} sx={{ width: '100%' }}>
-                Start Quiz
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleCreateQuiz('')}
+                sx={{ marginBottom: 2, width: '100%' }}
+              >
+                Random Quiz
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleCreateQuiz('personalized')}
+                sx={{ width: '100%' }}
+              >
+                Personalized Quiz
               </Button>
             </Paper>
           ) : (
