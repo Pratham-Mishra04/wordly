@@ -84,7 +84,7 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
           const word = allWords.find(w => w.word === mistake.correctAnswer);
           if (!word) return null;
 
-          const example = word.examples[0];
+          const example = word.examples[Math.floor(Math.random() * word.examples.length)];
           const questionText = example.replace(word.word, '____');
           const correctOption: Option = { value: word.word, isCorrect: true };
 

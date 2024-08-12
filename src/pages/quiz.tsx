@@ -68,9 +68,11 @@ const Quiz: React.FC = () => {
               >
                 Personalized Quiz
               </Button>
-              <Typography variant="body1" color="error" sx={{ marginTop: 2 }}>
-                {errorMessage}
-              </Typography>
+              {errorMessage && (
+                <Typography variant="body1" color="error" sx={{ marginTop: 2 }}>
+                  {errorMessage}
+                </Typography>
+              )}
             </Paper>
           ) : (
             <LiveQuiz

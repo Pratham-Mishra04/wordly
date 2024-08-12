@@ -9,6 +9,9 @@ export const submitQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === 'POST') {
     const { questions } = req.body;
 
+    if (!questions || questions.length == 0)
+      res.status(400).json({ success: false, error: 'No questions in the quiz.' });
+
     try {
       // Calculate the score based on user answers and correct answers
       const totalQuestions = questions.length;

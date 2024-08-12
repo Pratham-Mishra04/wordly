@@ -2,7 +2,10 @@ export interface Word {
   _id: string;
   word: string;
   meaning: string;
-  examples: string[];
+  examples?: string[];
+  partOfSpeech: string;
+  synonyms?: string[];
+  antonyms?: string[];
   created_at: Date;
 }
 

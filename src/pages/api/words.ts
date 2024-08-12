@@ -35,6 +35,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
           word: req.body.word,
           meaning: req.body.meaning,
           examples: req.body.examples,
+          partOfSpeech: req.body.partOfSpeech,
+          synonyms: req.body.synonyms,
+          antonyms: req.body.antonyms,
         });
         await word.save();
         res.status(201).json({ success: true, data: word });
@@ -48,7 +51,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         if (!wid) {
           return res.status(400).json({ success: false, error: 'Word ID is required' });
         }
-        const word = await Word.findOneAndUpdate({ userId: req.session.user.id, id: wid }, req.body, { new: true });
+        const word = await Word.findOneAndUpdate({ userId: req.session.user.id, _id: wid }, req.body, { new: true });
         if (!word) {
           return res.status(404).json({ success: false, error: 'Word not found' });
         }
@@ -63,7 +66,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         if (!wid) {
           return res.status(400).json({ success: false, error: 'Word ID is required' });
         }
-        const word = await Word.findOneAndDelete({ userId: req.session.user.id, id: wid });
+        const word = await Word.findOneAndDelete({ userId: req.session.user.id, _id: wid });
         if (!word) {
           return res.status(404).json({ success: false, error: 'Word not found' });
         }

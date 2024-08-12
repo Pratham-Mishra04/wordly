@@ -3,14 +3,16 @@ import {
   Container,
   Typography,
   List,
-  ListItem,
-  ListItemText,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
   Box,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
 } from '@mui/material';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -18,6 +20,7 @@ import { Word } from '@/types';
 import Navbar from '@/components/navbar';
 import { getSession } from 'next-auth/react';
 import { GetServerSidePropsContext } from 'next';
+import WordComponent from '@/components/word';
 
 const Words: React.FC = () => {
   const [words, setWords] = useState<Word[]>([]);
@@ -25,6 +28,10 @@ const Words: React.FC = () => {
   const [word, setWord] = useState<string>('');
   const [meaning, setMeaning] = useState<string>('');
   const [examples, setExamples] = useState<string>('');
+  const [partOfSpeech, setPartOfSpeech] = useState<string>('');
+  const [synonyms, setSynonyms] = useState<string>('');
+  const [antonyms, setAntonyms] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     async function fetchWords() {
@@ -39,14 +46,22 @@ const Words: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const response = await axios.post('/api/words', {
-      word,
-      meaning,
-      examples: examples.split('\n'),
-    });
-    if (response.data.success) {
-      setWords([...words, response.data.data]);
-      handleClose();
+    setErrorMessage('');
+    try {
+      const response = await axios.post('/api/words', {
+        word,
+        meaning,
+        examples: examples.split('\n'),
+        partOfSpeech,
+        synonyms: synonyms?.split(',').map(syn => syn.trim()),
+        antonyms: antonyms?.split(',').map(ant => ant.trim()),
+      });
+      if (response.data.success) {
+        setWords([...words, response.data.data]);
+        handleClose();
+      }
+    } catch (err) {
+      setErrorMessage((err as any)?.response?.data.error || '');
     }
   };
 
@@ -63,36 +78,9 @@ const Words: React.FC = () => {
       </Box>
       <List>
         {words.map((word, index) => (
-          <Box key={word._id} mb={1}>
-            <ListItem>
-              <ListItemText
-                primary={`${index + 1}. ${word.word}`}
-                secondary={
-                  <>
-                    <Typography component="span" variant="body1">
-                      Meaning: {word.meaning}
-                    </Typography>
-                    <br />
-                    <Typography component="span" variant="body2" color="textSecondary">
-                      Examples:
-                    </Typography>
-                    <ol>
-                      {word.examples.map((example, exampleIndex) => (
-                        <li key={exampleIndex}>
-                          <Typography component="span" variant="body2">
-                            {example}
-                          </Typography>
-                        </li>
-                      ))}
-                    </ol>
-                  </>
-                }
-              />
-            </ListItem>
-          </Box>
+          <WordComponent key={index} index={index} word={word} setWords={setWords} />
         ))}
       </List>
-      {/* Add Word Modal */}
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Add New Word</DialogTitle>
         <DialogContent>
@@ -126,11 +114,61 @@ const Words: React.FC = () => {
               onChange={e => setExamples(e.target.value)}
               required
             />
+            <FormControl fullWidth margin="normal" variant="outlined">
+              <InputLabel id="part-of-speech-label">Part of Speech</InputLabel>
+              <Select
+                labelId="part-of-speech-label"
+                value={partOfSpeech}
+                onChange={e => setPartOfSpeech(e.target.value)}
+                label="Part of Speech"
+                required
+              >
+                <MenuItem value="noun">Noun</MenuItem>
+                <MenuItem value="verb">Verb</MenuItem>
+                <MenuItem value="adjective">Adjective</MenuItem>
+                <MenuItem value="adverb">Adverb</MenuItem>
+                <MenuItem value="pronoun">Pronoun</MenuItem>
+                <MenuItem value="preposition">Preposition</MenuItem>
+                <MenuItem value="conjunction">Conjunction</MenuItem>
+                <MenuItem value="interjection">Interjection</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              label="Synonyms (comma separated)"
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              multiline
+              rows={2}
+              value={synonyms}
+              onChange={e => setSynonyms(e.target.value)}
+            />
+            <TextField
+              label="Antonyms (comma separated)"
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              multiline
+              rows={2}
+              value={antonyms}
+              onChange={e => setAntonyms(e.target.value)}
+            />
             <DialogActions>
-              <Button onClick={handleClose}>Cancel</Button>
-              <Button type="submit" variant="contained" color="primary">
-                Add Word
-              </Button>
+              <Box display="flex" flexDirection="column" gap="12px" justifyContent="space-between" width="100%">
+                <Box display="flex" justifyContent="space-between" width="100%">
+                  <Button onClick={handleClose}>Cancel</Button>
+                  <Button type="submit" variant="contained" color="primary">
+                    Add Word
+                  </Button>
+                </Box>
+                {errorMessage && (
+                  <Box display="flex" alignItems="center" ml={2}>
+                    <Typography variant="body1" color="error">
+                      {errorMessage}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
             </DialogActions>
           </form>
         </DialogContent>

@@ -11,6 +11,7 @@ interface Props {
 
 const Flashcard = ({ index, word, expandedCard, setExpandedCard }: Props) => {
   const [showCard, setShowCard] = useState(false);
+
   const handleCardClick = (index: number) => {
     if (setExpandedCard) setExpandedCard(prev => (prev === index ? null : index));
     else setShowCard(prev => !prev);
@@ -38,10 +39,19 @@ const Flashcard = ({ index, word, expandedCard, setExpandedCard }: Props) => {
           </Typography>
           <Collapse in={isClicked()}>
             <Typography variant="body1" color="textSecondary">
-              {word.meaning}
+              <strong>Meaning:</strong> {word.meaning}
             </Typography>
             <Typography variant="body2" color="textSecondary" mt={2}>
-              Examples:
+              <strong>Part of Speech:</strong> {word.partOfSpeech}
+            </Typography>
+            <Typography variant="body2" color="textSecondary" mt={2}>
+              <strong>Synonyms:</strong> {word.synonyms?.join(', ') || 'None'}
+            </Typography>
+            <Typography variant="body2" color="textSecondary" mt={2}>
+              <strong>Antonyms:</strong> {word.antonyms?.join(', ') || 'None'}
+            </Typography>
+            <Typography variant="body2" color="textSecondary" mt={2}>
+              <strong>Examples:</strong>
             </Typography>
             {word.examples?.map((example, i) => (
               <Typography key={i} variant="body2" color="textSecondary">

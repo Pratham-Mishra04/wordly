@@ -40,8 +40,10 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
     const { length } = req.body;
 
     try {
-      // Fetch random words from the database
-      const words = await Word.aggregate([{ $sample: { size: length } }]);
+      const words = await Word.aggregate([
+        { $match: { examples: { $exists: true, $ne: [] } } }, // Filter to include only words with examples
+        { $sample: { size: length } },
+      ]);
 
       // Retrieve all words for option generation
       const allWords = await Word.find({ userId: req.session.user.id }).select('-_id');
@@ -51,7 +53,7 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       const questions = words.map(word => {
-        const example = word.examples[0];
+        const example = word.examples[Math.floor(Math.random() * word.examples.length)];
         const question = example.replace(word.word, '____');
         const correctOption: Option = {
           value: word.word,
