@@ -107,7 +107,7 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
           return {
             question: questionText,
             options: shuffledOptions.map(opt => opt.value),
-            correctAnswer: correctOption.value,
+            correctAnswer: allWords.filter(word => word.word == correctOption.value)[0],
           };
         })
         .filter((q): q is NonNullable<typeof q> => q !== null);
