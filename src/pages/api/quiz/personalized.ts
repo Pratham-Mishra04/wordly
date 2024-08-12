@@ -20,6 +20,9 @@ interface Mistake {
 }
 
 const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
+  const user = req.session?.user;
+  if (!user) return res.status(403).json({ success: false, error: 'You are not logged in' });
+
   await connectToDB();
 
   if (req.method === 'POST') {

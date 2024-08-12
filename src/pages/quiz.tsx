@@ -5,6 +5,8 @@ import { Question } from '@/types';
 import QuizResults from '@/components/quiz_results';
 import LiveQuiz from '@/components/quiz';
 import Navbar from '@/components/navbar';
+import { getSession } from 'next-auth/react';
+import { GetServerSidePropsContext } from 'next';
 
 const Quiz: React.FC = () => {
   const [questions, setQuestions] = useState<Question[] | null>(null);
@@ -75,6 +77,20 @@ const Quiz: React.FC = () => {
       </Container>
     </Container>
   );
+};
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const session = await getSession(context);
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/',
+      },
+    };
+  }
+  return {
+    props: {},
+  };
 };
 
 export default Quiz;

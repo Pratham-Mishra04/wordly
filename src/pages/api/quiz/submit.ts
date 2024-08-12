@@ -43,6 +43,9 @@ export const submitQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const user = req.session?.user;
+  if (!user) return res.status(403).json({ success: false, error: 'You are not logged in' });
+
   if (req.method === 'POST') {
     return submitQuiz(req, res);
   } else {

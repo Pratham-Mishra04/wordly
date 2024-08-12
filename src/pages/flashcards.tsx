@@ -4,6 +4,8 @@ import axios from 'axios';
 import { Word } from '@/types';
 import Flashcard from '@/components/flashcard';
 import Navbar from '@/components/navbar';
+import { GetServerSidePropsContext } from 'next';
+import { getSession } from 'next-auth/react';
 
 const Flashcards: React.FC = () => {
   const [words, setWords] = useState<Word[]>([]);
@@ -36,6 +38,20 @@ const Flashcards: React.FC = () => {
       </Grid>
     </Container>
   );
+};
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const session = await getSession(context);
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/',
+      },
+    };
+  }
+  return {
+    props: {},
+  };
 };
 
 export default Flashcards;

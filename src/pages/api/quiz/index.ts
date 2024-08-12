@@ -87,6 +87,9 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const user = req.session?.user;
+  if (!user) return res.status(403).json({ success: false, error: 'You are not logged in' });
+
   switch (req.method) {
     case 'GET':
       return getAllQuizzes(req, res);

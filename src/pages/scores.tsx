@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Container, Typography, Box, Button, Card, CardContent, Divider, CircularProgress } from '@mui/material';
 import { QuizResult } from '@/types';
 import Navbar from '@/components/navbar';
+import { getSession } from 'next-auth/react';
+import { GetServerSidePropsContext } from 'next';
 
 const QuizHistory: React.FC = () => {
   const [quizHistory, setQuizHistory] = useState<QuizResult[] | null>(null);
@@ -92,6 +94,20 @@ const QuizHistory: React.FC = () => {
       </Box>
     </Container>
   );
+};
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const session = await getSession(context);
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/',
+      },
+    };
+  }
+  return {
+    props: {},
+  };
 };
 
 export default QuizHistory;

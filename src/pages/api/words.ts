@@ -9,10 +9,13 @@ type Data = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-  await connectToDB();
-
   const { method } = req;
   const { wid } = req.query;
+
+  const user = req.session?.user;
+  if (!user) return res.status(403).json({ success: false, error: 'You are not logged in' });
+
+  await connectToDB();
 
   switch (method) {
     case 'GET':

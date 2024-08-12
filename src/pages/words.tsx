@@ -16,6 +16,8 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Word } from '@/types';
 import Navbar from '@/components/navbar';
+import { getSession } from 'next-auth/react';
+import { GetServerSidePropsContext } from 'next';
 
 const Words: React.FC = () => {
   const [words, setWords] = useState<Word[]>([]);
@@ -133,6 +135,20 @@ const Words: React.FC = () => {
       </Dialog>
     </Container>
   );
+};
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const session = await getSession(context);
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/',
+      },
+    };
+  }
+  return {
+    props: {},
+  };
 };
 
 export default Words;
