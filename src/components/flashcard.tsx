@@ -13,7 +13,7 @@ const Flashcard = ({ index, word, expandedCard, setExpandedCard }: Props) => {
   const [clicked, setClicked] = useState(false);
 
   const isExpanded = () => {
-    if (expandedCard) return expandedCard === index;
+    if (expandedCard != undefined || expandedCard != null) return expandedCard === index;
     return clicked;
   };
 

@@ -46,8 +46,7 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
         { $sample: { size: length } },
       ]);
 
-      // Retrieve all words for option generation
-      const allWords = await Word.find({ userId: req.session.user.id }).select('word');
+      const allWords = await Word.find({ userId: req.session.user.id }).select('-_id');
 
       if (allWords.length < 4) {
         return res.status(400).json({ success: false, error: 'Not enough words to start a quiz' });
@@ -58,20 +57,17 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
           // Find all examples that include the word
           const validExamples = word.examples.filter((ex: any) => ex.includes(word.word));
           if (validExamples.length === 0) {
-            return null; // Skip if no example contains the word
+            return null;
           }
 
-          // Randomly select one example
           const example = validExamples[Math.floor(Math.random() * validExamples.length)];
 
-          // Create the question and options
           const question = example.replace(word.word, '____');
           const correctOption: Option = {
             value: word.word,
             isCorrect: true,
           };
 
-          // Generate options
           const options: Option[] = [correctOption];
           while (options.length < 4) {
             const randomWord = allWords[Math.floor(Math.random() * allWords.length)].word;
@@ -80,7 +76,6 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
             }
           }
 
-          // Shuffle options
           const shuffledOptions = options.sort(() => Math.random() - 0.5);
 
           return {
@@ -89,7 +84,7 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
             correctAnswer: allWords.filter(word => word.word == correctOption.value)[0],
           };
         })
-        .filter(question => question !== null); // Remove null entries
+        .filter(question => question !== null);
 
       res.status(200).json({ success: true, data: { questions } });
     } catch (error) {
