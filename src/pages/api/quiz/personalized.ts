@@ -84,25 +84,30 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
           const word = allWords.find(w => w.word === mistake.correctAnswer);
           if (!word) return null;
 
-          const example = word.examples[Math.floor(Math.random() * word.examples.length)];
+          // Filter examples that contain the word and select one randomly
+          const validExamples = word.examples.filter(ex => ex.includes(word.word));
+          if (validExamples.length === 0) return null;
+
+          const example = validExamples[Math.floor(Math.random() * validExamples.length)];
           const questionText = example.replace(word.word, '____');
           const correctOption: Option = { value: word.word, isCorrect: true };
 
-          const options: Option[] = [];
-          while (options.length < 3) {
+          // Generate options
+          const options: Option[] = [correctOption];
+          while (options.length < 4) {
             const randomWord = allWords[Math.floor(Math.random() * allWords.length)].word;
             if (!options.some(opt => opt.value === randomWord) && randomWord !== correctOption.value) {
               options.push({ value: randomWord, isCorrect: false });
             }
           }
 
-          options.push(correctOption);
+          // Shuffle options
           const shuffledOptions = options.sort(() => Math.random() - 0.5);
 
           return {
             question: questionText,
             options: shuffledOptions.map(opt => opt.value),
-            correctAnswer: allWords.filter(w => w.word == correctOption.value)[0],
+            correctAnswer: correctOption.value,
           };
         })
         .filter((q): q is NonNullable<typeof q> => q !== null);

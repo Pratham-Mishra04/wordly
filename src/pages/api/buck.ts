@@ -58,6 +58,9 @@ async function fetchFromWeb(word: string) {
         // Check if the element has a child div with text
         return $(element).find('div').text().trim().length > 0;
       })
+      .filter((index: number, element: any) => {
+        return index < 5;
+      })
       .map((index: number, element: any) => {
         return $(element).text().trim().replace(':', '');
       })
