@@ -9,7 +9,7 @@ export const getAllQuizzes = async (req: NextApiRequest, res: NextApiResponse) =
 
   if (req.method === 'GET') {
     try {
-      const quizzes = await Quiz.find({});
+      const quizzes = await Quiz.find({ userId: req.session.user.id });
       res.status(200).json({
         data: quizzes.map(quiz => ({
           score: quiz.score,
@@ -43,7 +43,7 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
       const words = await Word.aggregate([{ $sample: { size: length } }]);
 
       // Retrieve all words for option generation
-      const allWords = await Word.find({}).select('-_id');
+      const allWords = await Word.find({ userId: req.session.user.id }).select('-_id');
 
       if (allWords.length < 4) {
         return res.status(500).json({ success: false, error: 'Not enough words' });

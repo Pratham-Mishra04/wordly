@@ -1,7 +1,7 @@
-import { DefaultSession } from 'next-auth';
+import { Session } from 'next-auth';
 
 declare module 'next' {
   interface NextApiRequest {
-    session: DefaultSession;
+    session: Session;
   }
 }

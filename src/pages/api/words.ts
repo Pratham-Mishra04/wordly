@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   switch (method) {
     case 'GET':
       try {
-        const words = wid ? await Word.findById(wid) : await Word.find({});
+        const words = wid ? await Word.findById(wid) : await Word.find({ userId: req.session.user.id });
         if (!words) {
           return res.status(404).json({ success: false, error: 'Word not found' });
         }
@@ -32,7 +32,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     case 'POST':
       try {
-        const word = new Word(req.body);
+        const word = new Word({
+          userId: req.session.user.id,
+          word: req.body.word,
+          meaning: req.body.meaning,
+          examples: req.body.examples,
+        });
         await word.save();
         res.status(201).json({ success: true, data: word });
       } catch (error) {
@@ -45,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         if (!wid) {
           return res.status(400).json({ success: false, error: 'Word ID is required' });
         }
-        const word = await Word.findByIdAndUpdate(wid, req.body, { new: true });
+        const word = await Word.findOneAndUpdate({ userId: req.session.user.id, id: wid }, req.body, { new: true });
         if (!word) {
           return res.status(404).json({ success: false, error: 'Word not found' });
         }
@@ -60,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         if (!wid) {
           return res.status(400).json({ success: false, error: 'Word ID is required' });
         }
-        const word = await Word.findByIdAndDelete(wid);
+        const word = await Word.findOneAndDelete({ userId: req.session.user.id, id: wid });
         if (!word) {
           return res.status(404).json({ success: false, error: 'Word not found' });
         }

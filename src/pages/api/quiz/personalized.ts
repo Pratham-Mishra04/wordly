@@ -29,7 +29,7 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
     const { length }: { length: number } = req.body;
 
     try {
-      const quizzes = await Quiz.find({}).sort({ created_at: -1 }).exec();
+      const quizzes = await Quiz.find({ userId: req.session.user.id }).sort({ created_at: -1 }).exec();
 
       const mistakes: Mistake[] = quizzes.flatMap(quiz =>
         quiz.questions
@@ -72,7 +72,7 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
         })
         .sort((a, b) => (b.count || 0) - (a.count || 0));
 
-      const allWords = await Word.find({}).select('-_id').exec();
+      const allWords = await Word.find({ userId: req.session.user.id }).select('-_id').exec();
 
       if (allWords.length < 4) {
         return res.status(500).json({ success: false, error: 'Not enough words' });

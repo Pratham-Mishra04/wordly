@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IQuiz extends Document {
+  userId: mongoose.Schema.Types.ObjectId;
   questions: {
     question: string;
     correctAnswer: string;
@@ -12,11 +13,16 @@ export interface IQuiz extends Document {
 }
 
 const QuizSchema: Schema = new Schema({
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
   questions: [
     {
       question: { type: String, required: true },
       correctAnswer: { type: String, required: true },
-      selectedAnswer: { type: String, required: true },
+      selectedAnswer: { type: String, required: false },
     },
   ],
   score: { type: Number, required: true },
