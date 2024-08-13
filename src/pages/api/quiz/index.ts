@@ -76,6 +76,14 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
 
       const allWords = await Word.find({ userId: req.session.user.id }).exec();
 
+      // Group words by their POS
+      const wordsByPOS = allWords.reduce((acc, word) => {
+        const pos = word.partOfSpeech;
+        if (!acc[pos]) acc[pos] = [];
+        acc[pos].push(word);
+        return acc;
+      }, {} as Record<string, typeof allWords>);
+
       // Filter and generate questions
       const questions = words
         .map(word => {
@@ -97,11 +105,24 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
             isCorrect: true,
           };
 
-          // Generate three incorrect options
+          // Generate incorrect options with the same POS if possible
           const options: Option[] = [correctOption];
+          const pos = word.partOfSpeech;
+          const samePOSWords = wordsByPOS[pos]?.filter(w => w.word !== word.word) || [];
+
+          // Add incorrect options from the same POS
+          while (options.length < 4 && samePOSWords.length > 0) {
+            const randomWord = samePOSWords.splice(Math.floor(Math.random() * samePOSWords.length), 1)[0].word;
+            if (!options.some(opt => opt.value === randomWord)) {
+              options.push({ value: randomWord, isCorrect: false });
+            }
+          }
+
+          // If not enough words with the same POS, add random options from other POS
+          const otherWords = allWords.filter(w => w.word !== word.word && w.partOfSpeech !== pos);
           while (options.length < 4) {
-            const randomWord = allWords[Math.floor(Math.random() * allWords.length)].word;
-            if (randomWord !== word.word && !options.some(opt => opt.value === randomWord)) {
+            const randomWord = otherWords[Math.floor(Math.random() * otherWords.length)].word;
+            if (!options.some(opt => opt.value === randomWord)) {
               options.push({ value: randomWord, isCorrect: false });
             }
           }

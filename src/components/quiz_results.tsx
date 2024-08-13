@@ -14,7 +14,10 @@ const QuizResults = ({ score, results }: Props) => {
           Quiz Results
         </Typography>
         <Typography variant="h6" gutterBottom>
-          Your score: <strong>{score}</strong>
+          Your score:{' '}
+          <strong>
+            {score}\{results.length}
+          </strong>
         </Typography>
         {results.map((result, index) => (
           <Box key={index} mb={2} sx={{ padding: 2, borderRadius: 1, boxShadow: 1 }}>
