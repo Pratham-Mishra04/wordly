@@ -74,6 +74,8 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
           }).exec()
         : await Word.find({ userId: req.session.user.id, examples: { $exists: true, $ne: [] } }).exec();
 
+      const allWords = await Word.find({ userId: req.session.user.id }).exec();
+
       // Filter and generate questions
       const questions = words
         .map(word => {
@@ -98,7 +100,7 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
           // Generate three incorrect options
           const options: Option[] = [correctOption];
           while (options.length < 4) {
-            const randomWord = words[Math.floor(Math.random() * words.length)].word;
+            const randomWord = allWords[Math.floor(Math.random() * allWords.length)].word;
             if (randomWord !== word.word && !options.some(opt => opt.value === randomWord)) {
               options.push({ value: randomWord, isCorrect: false });
             }
