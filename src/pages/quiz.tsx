@@ -1,4 +1,15 @@
-import { Button, Container, Typography, Box, TextField, Paper } from '@mui/material';
+import {
+  Button,
+  Container,
+  Typography,
+  Paper,
+  TextField,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  SelectChangeEvent,
+} from '@mui/material';
 import { useState } from 'react';
 import axios from 'axios';
 import { Question } from '@/types';
@@ -14,16 +25,21 @@ const Quiz: React.FC = () => {
   const [score, setScore] = useState<number>(0);
   const [results, setResults] = useState<Array<any> | null>(null);
   const [quizLength, setQuizLength] = useState<number>(3);
+  const [timestamp, setTimestamp] = useState<string>('all time');
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleQuizLengthChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setQuizLength(Number(event.target.value));
   };
 
+  const handleTimestampChange = (event: React.ChangeEvent<{ value: unknown }> | SelectChangeEvent<string>) => {
+    setTimestamp(event.target.value as string);
+  };
+
   const handleCreateQuiz = async (type: string) => {
     try {
       setErrorMessage('');
-      const response = await axios.post(`/api/quiz/${type}`, { length: quizLength });
+      const response = await axios.post(`/api/quiz/${type}`, { length: quizLength, timestamp });
       setQuestions(response.data.data.questions);
     } catch (err) {
       setErrorMessage((err as any)?.response?.data.error || '');
@@ -33,7 +49,7 @@ const Quiz: React.FC = () => {
   return (
     <Container>
       <Navbar />
-      <Container maxWidth="sm">
+      <Container maxWidth="md">
         <Typography variant="h2" align="center" sx={{ marginY: '16px' }}>
           Quiz
         </Typography>
@@ -52,6 +68,22 @@ const Quiz: React.FC = () => {
                 sx={{ marginBottom: 2, width: '100%' }}
                 variant="outlined"
               />
+              <FormControl variant="outlined" sx={{ marginBottom: 2, width: '100%' }}>
+                <InputLabel id="timestamp-label">Word Added Time Range</InputLabel>
+                <Select
+                  labelId="timestamp-label"
+                  value={timestamp}
+                  onChange={handleTimestampChange}
+                  label="Word Added Time Range"
+                >
+                  <MenuItem value="all time">All Time</MenuItem>
+                  <MenuItem value="today">Today</MenuItem>
+                  <MenuItem value="yesterday">Yesterday</MenuItem>
+                  <MenuItem value="last 3 days">Last 3 Days</MenuItem>
+                  <MenuItem value="last week">Last Week</MenuItem>
+                  <MenuItem value="last month">Last Month</MenuItem>
+                </Select>
+              </FormControl>
               <Button
                 variant="contained"
                 color="primary"

@@ -3,7 +3,27 @@ import Quiz from '@/models/quiz';
 import Word from '@/models/word';
 import connectToDB from '@/server/db';
 import { Option } from '@/types';
+import moment from 'moment-timezone';
 import type { NextApiRequest, NextApiResponse } from 'next';
+
+const timezone = 'Asia/Kolkata';
+
+const calculateTimestampRange = (timestamp: string): moment.Moment | null => {
+  switch (timestamp) {
+    case 'today':
+      return moment.tz(timezone).startOf('day');
+    case 'yesterday':
+      return moment.tz(timezone).subtract(1, 'days').startOf('day');
+    case 'last 3 days':
+      return moment.tz(timezone).subtract(3, 'days').startOf('day');
+    case 'last week':
+      return moment.tz(timezone).subtract(7, 'days').startOf('day');
+    case 'last month':
+      return moment.tz(timezone).subtract(1, 'months').startOf('day');
+    default:
+      return null;
+  }
+};
 
 export const getAllQuizzes = async (req: NextApiRequest, res: NextApiResponse) => {
   await connectToDB();
@@ -37,11 +57,22 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
   await connectToDB();
 
   if (req.method === 'POST') {
-    const { length } = req.body;
+    const { length, timestamp } = req.body;
 
     try {
-      // Fetch all words belonging to the user that have examples
-      const words = await Word.find({ userId: req.session.user.id, examples: { $exists: true, $ne: [] } }).exec();
+      const rangeStart = calculateTimestampRange(timestamp);
+
+      // Fetch all words belonging to the user that have examples and fall within the timestamp range
+      const words = rangeStart
+        ? await Word.find({
+            userId: req.session.user.id,
+            examples: { $exists: true, $ne: [] },
+            created_at: {
+              $gte: rangeStart.toDate(),
+              $lt: moment.tz(timezone).endOf('day').toDate(), // Ensures comparison until the end of the selected day
+            },
+          }).exec()
+        : await Word.find({ userId: req.session.user.id, examples: { $exists: true, $ne: [] } }).exec();
 
       // Filter and generate questions
       const questions = words

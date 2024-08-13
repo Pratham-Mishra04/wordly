@@ -10,6 +10,7 @@ import {
   Box,
   Container,
   Paper,
+  LinearProgress,
 } from '@mui/material';
 import { Question } from '@/types';
 import axios from 'axios';
@@ -27,17 +28,17 @@ const LiveQuiz = ({ questions, setQuizCompleted, setScore, setResults }: Props) 
   const [feedback, setFeedback] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Map<number, string>>(new Map());
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [showFlashcard, setShowFlashcard] = useState<boolean>(false); // State to control flashcard visibility
+  const [showFlashcard, setShowFlashcard] = useState<boolean>(false);
 
   const handleAnswerSelect = (option: string) => {
     if (questions && !selectedAnswer) {
       const currentQuestion = questions[currentIndex];
       if (option === currentQuestion.correctAnswer.word) {
         setFeedback('Correct!');
-        setShowFlashcard(false); // Hide flashcard on correct answer
+        setShowFlashcard(false);
       } else {
         setFeedback(`Incorrect! The correct answer is: ${currentQuestion.correctAnswer.word}`);
-        setShowFlashcard(true); // Show flashcard on incorrect answer
+        setShowFlashcard(true);
       }
       setSelectedAnswer(option);
     }
@@ -47,8 +48,8 @@ const LiveQuiz = ({ questions, setQuizCompleted, setScore, setResults }: Props) 
     if (questions && selectedAnswer !== null) {
       setAnswers(new Map(answers.set(currentIndex, selectedAnswer)));
       setSelectedAnswer(null);
-      setFeedback(null); // Clear feedback for the next question
-      setShowFlashcard(false); // Hide flashcard when moving to the next question
+      setFeedback(null);
+      setShowFlashcard(false);
       setCurrentIndex(currentIndex + 1);
     }
   };
@@ -57,7 +58,7 @@ const LiveQuiz = ({ questions, setQuizCompleted, setScore, setResults }: Props) 
     if (questions && selectedAnswer !== null) {
       setAnswers(new Map(answers.set(currentIndex, selectedAnswer)));
       setSelectedAnswer(null);
-      setFeedback(null); // Clear feedback for the next question
+      setFeedback(null);
 
       const response = await axios.post('/api/quiz/submit', {
         questions: questions.map((q, index) => ({
@@ -67,19 +68,27 @@ const LiveQuiz = ({ questions, setQuizCompleted, setScore, setResults }: Props) 
         })),
       });
       setScore(response.data.data.score);
-      setResults(response.data.data.results); // Store results for display
-      setQuizCompleted(true); // Move this here to avoid early completion
+      setResults(response.data.data.results);
+      setQuizCompleted(true);
     }
   };
 
   return (
     <Container maxWidth="md">
-      <Paper elevation={3} sx={{ padding: 3, marginTop: 3 }}>
-        <Typography variant="h4" gutterBottom>
+      <Paper elevation={3} sx={{ padding: 4, marginTop: 4 }}>
+        <Typography variant="h6" align="center" gutterBottom>
+          Question {currentIndex + 1} of {questions.length}
+        </Typography>
+        <LinearProgress
+          variant="determinate"
+          value={((currentIndex + 1) / questions.length) * 100}
+          sx={{ marginBottom: 4 }}
+        />
+        <Typography variant="h5" gutterBottom>
           {questions[currentIndex]?.question}
         </Typography>
         <FormControl component="fieldset" fullWidth>
-          <FormLabel component="legend">Options</FormLabel>
+          <FormLabel component="legend">Choose an answer:</FormLabel>
           <RadioGroup>
             {questions[currentIndex]?.options.map((option, i) => (
               <FormControlLabel
@@ -88,7 +97,7 @@ const LiveQuiz = ({ questions, setQuizCompleted, setScore, setResults }: Props) 
                   <Radio
                     checked={selectedAnswer === option}
                     onChange={() => handleAnswerSelect(option)}
-                    disabled={!!selectedAnswer} // Disable radio buttons once an answer is selected
+                    disabled={!!selectedAnswer}
                   />
                 }
                 label={option}
@@ -116,28 +125,18 @@ const LiveQuiz = ({ questions, setQuizCompleted, setScore, setResults }: Props) 
           </Typography>
         )}
         {showFlashcard && (
-          <Box sx={{ marginTop: 2 }}>
+          <Box sx={{ marginTop: 3, animation: 'fadeIn 0.5s' }}>
             <Flashcard index={0} word={questions[currentIndex]?.correctAnswer} />
           </Box>
         )}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
           {currentIndex === questions.length - 1 ? (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSubmitQuiz}
-              disabled={selectedAnswer === null} // Disable button until an answer is selected
-            >
-              Submit
+            <Button variant="contained" color="primary" onClick={handleSubmitQuiz} disabled={selectedAnswer === null}>
+              Submit Quiz
             </Button>
           ) : (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleNext}
-              disabled={selectedAnswer === null} // Disable button until an answer is selected
-            >
-              Next
+            <Button variant="contained" color="primary" onClick={handleNext} disabled={selectedAnswer === null}>
+              Next Question
             </Button>
           )}
         </Box>
