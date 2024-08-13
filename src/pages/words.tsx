@@ -1,4 +1,4 @@
-import { Button, Container, Typography, List, Box, CircularProgress, TextField } from '@mui/material';
+import { Button, Container, Typography, List, Box, TextField } from '@mui/material';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Word } from '@/types';
@@ -7,11 +7,12 @@ import { getSession } from 'next-auth/react';
 import { GetServerSidePropsContext } from 'next';
 import WordComponent from '@/components/word';
 import AddWordModal from '@/components/add_word';
-import BulkAddModal from '@/components/add_words_buck';
+import BulkAddModal from '@/components/add_words_bulk';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 const Words: React.FC = () => {
   const [words, setWords] = useState<Word[]>([]);
+  const [wordCount, setWordCount] = useState(0);
   const [open, setOpen] = useState<boolean>(false);
   const [bulkAddOpen, setBulkAddOpen] = useState<boolean>(false);
   const [hasMore, setHasMore] = useState(true);
@@ -39,6 +40,19 @@ const Words: React.FC = () => {
     setWords([]);
   }, [searchQuery]);
 
+  useEffect(() => {
+    const fetchWordCounts = async () => {
+      try {
+        const response = await axios.get('/api/words/meta');
+        setWordCount(response.data.data['all time'] || 0);
+      } catch (err) {
+        console.error('Failed to fetch word counts', err);
+      }
+    };
+
+    fetchWordCounts();
+  }, []);
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
@@ -54,7 +68,7 @@ const Words: React.FC = () => {
       <Navbar />
       <Box display="flex" flexDirection="column" sx={{ marginTop: '16px' }}>
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h2">Words</Typography>
+          <Typography variant="h2">Words ({wordCount})</Typography>
           <Box>
             <Button variant="contained" color="primary" onClick={handleOpen}>
               Add New Word

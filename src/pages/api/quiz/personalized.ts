@@ -1,16 +1,9 @@
 import sessionCheck from '@/middlewares/session';
-import Quiz from '@/models/quiz'; // Import your Quiz model
-import Word from '@/models/word'; // Import your Word model
+import Quiz from '@/models/quiz';
+import Word from '@/models/word';
 import connectToDB from '@/server/db';
 import { Option } from '@/types';
 import { NextApiRequest, NextApiResponse } from 'next';
-
-interface QuizQuestion {
-  question: string;
-  correctAnswer: string;
-  selectedAnswer: string;
-  created_at: Date;
-}
 
 interface Mistake {
   question: string;
@@ -41,7 +34,6 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
           }))
       );
 
-      // Calculate mistake counts
       const mistakeCountMap: Record<string, Mistake> = mistakes.reduce((map, mistake) => {
         const key = mistake.question;
 
@@ -120,7 +112,6 @@ const createPersonalizedQuiz = async (req: NextApiRequest, res: NextApiResponse)
           }
         }
 
-        // Shuffle the options
         const shuffledOptions = options.sort(() => Math.random() - 0.5);
 
         const correctAnswer = allWords.filter(w => w.word == correctOption.value)[0];

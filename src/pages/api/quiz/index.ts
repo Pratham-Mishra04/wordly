@@ -99,13 +99,11 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
           // Create the question by replacing the word in the example with a blank
           const question = example.replace(word.word, '____');
 
-          // Define the correct option
           const correctOption: Option = {
             value: word.word,
             isCorrect: true,
           };
 
-          // Generate incorrect options with the same POS if possible
           const options: Option[] = [correctOption];
           const pos = word.partOfSpeech;
           const samePOSWords = wordsByPOS[pos]?.filter(w => w.word !== word.word) || [];

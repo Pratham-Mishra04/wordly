@@ -30,7 +30,7 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ open, onClose, setWords }) 
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/buck', {
+      const response = await axios.post('/api/words/bulk', {
         words: inputWords.split(',').map(word => word.trim()),
       });
 

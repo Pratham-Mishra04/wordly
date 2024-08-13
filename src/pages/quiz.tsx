@@ -10,7 +10,7 @@ import {
   InputLabel,
   SelectChangeEvent,
 } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Question } from '@/types';
 import QuizResults from '@/components/quiz_results';
@@ -18,6 +18,10 @@ import LiveQuiz from '@/components/quiz';
 import Navbar from '@/components/navbar';
 import { getSession } from 'next-auth/react';
 import { GetServerSidePropsContext } from 'next';
+
+interface WordCounts {
+  [key: string]: number;
+}
 
 const Quiz: React.FC = () => {
   const [questions, setQuestions] = useState<Question[] | null>(null);
@@ -27,6 +31,20 @@ const Quiz: React.FC = () => {
   const [quizLength, setQuizLength] = useState<number>(3);
   const [timestamp, setTimestamp] = useState<string>('all time');
   const [errorMessage, setErrorMessage] = useState('');
+  const [wordCounts, setWordCounts] = useState<WordCounts>({});
+
+  useEffect(() => {
+    const fetchWordCounts = async () => {
+      try {
+        const response = await axios.get('/api/words/meta');
+        setWordCounts(response.data.data);
+      } catch (err) {
+        console.error('Failed to fetch word counts', err);
+      }
+    };
+
+    fetchWordCounts();
+  }, []);
 
   const handleQuizLengthChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setQuizLength(Number(event.target.value));
@@ -76,12 +94,11 @@ const Quiz: React.FC = () => {
                   onChange={handleTimestampChange}
                   label="Word Added Time Range"
                 >
-                  <MenuItem value="all time">All Time</MenuItem>
-                  <MenuItem value="today">Today</MenuItem>
-                  <MenuItem value="yesterday">Yesterday</MenuItem>
-                  <MenuItem value="last 3 days">Last 3 Days</MenuItem>
-                  <MenuItem value="last week">Last Week</MenuItem>
-                  <MenuItem value="last month">Last Month</MenuItem>
+                  {Object.keys(wordCounts).map(key => (
+                    <MenuItem key={key} value={key}>
+                      {`${key.charAt(0).toUpperCase() + key.slice(1)} (${wordCounts[key]} words)`}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
               <Button
