@@ -18,7 +18,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   switch (method) {
     case 'GET':
       try {
-        const { query, wid, page = 1, limit = 10 } = req.query;
+        const { query, wid, page = 1, limit = 10, sort } = req.query;
 
         const pageNumber = parseInt(page as string, 10);
         const pageLimit = parseInt(limit as string, 10);
@@ -32,17 +32,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
         } else {
           const searchQuery = query ? { word: new RegExp(query as string, 'i') } : {};
 
+          const sortOption = sort === 'alpha' ? { word: 1 } : { created_at: -1 };
+
           const words = await Word.find({ userId: req.session.user.id, ...searchQuery })
-            .sort({ created_at: -1 })
-            .skip((Number(pageNumber) - 1) * Number(pageLimit))
-            .limit(Number(pageLimit));
+            .sort(sortOption as any)
+            .skip((pageNumber - 1) * pageLimit)
+            .limit(pageLimit);
 
           res.status(200).json({ success: true, data: words });
         }
       } catch (error) {
         res.status(400).json({ success: false, error: (error as Error).message });
       }
-      break;
 
     case 'POST':
       try {

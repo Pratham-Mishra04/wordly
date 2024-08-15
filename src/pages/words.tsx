@@ -1,4 +1,16 @@
-import { Button, Container, Typography, List, Box, TextField } from '@mui/material';
+import {
+  Button,
+  Container,
+  Typography,
+  List,
+  Box,
+  TextField,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  SelectChangeEvent,
+} from '@mui/material';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Word } from '@/types';
@@ -18,11 +30,12 @@ const Words: React.FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<string>('created_at'); // Add sortOrder state
 
   const fetchWords = async (initialPage?: number) => {
     try {
       const response = await axios.get(
-        `/api/words?page=${initialPage ? initialPage : page}&limit=20&query=${searchQuery}`
+        `/api/words?page=${initialPage ? initialPage : page}&limit=20&query=${searchQuery}&sort=${sortOrder}`
       );
       const addedWords = response.data.data;
       if (initialPage) setWords(addedWords);
@@ -38,7 +51,7 @@ const Words: React.FC = () => {
     setPage(1);
     fetchWords(1);
     setWords([]);
-  }, [searchQuery]);
+  }, [searchQuery, sortOrder]); // Update words on sortOrder change
 
   useEffect(() => {
     const fetchWordCounts = async () => {
@@ -63,11 +76,21 @@ const Words: React.FC = () => {
     setSearchQuery(event.target.value);
   };
 
+  const handleSortOrderChange = (event: React.ChangeEvent<{ value: unknown }> | SelectChangeEvent<string>) => {
+    setSortOrder(event.target.value as string);
+  };
+
   return (
     <Container>
       <Navbar />
       <Box display="flex" flexDirection="column" sx={{ marginTop: '16px' }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Box
+          display="flex"
+          flexDirection={{ xs: 'column', md: 'row' }}
+          gap={{ xs: '12px', md: '0px' }}
+          justifyContent="space-between"
+          alignItems="center"
+        >
           <Typography variant="h2">Words ({wordCount})</Typography>
           <Box>
             <Button variant="contained" color="primary" onClick={handleOpen}>
@@ -78,14 +101,37 @@ const Words: React.FC = () => {
             </Button>
           </Box>
         </Box>
-        <TextField
-          label="Search Words"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          value={searchQuery}
-          onChange={handleSearchChange}
-        />
+        <Box
+          display="flex"
+          flexDirection={{ xs: 'column', md: 'row' }}
+          gap={{ xs: '12px', md: '0px' }}
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ marginTop: '16px' }}
+        >
+          <TextField
+            label="Search Words"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
+          <FormControl
+            variant="outlined"
+            sx={{
+              marginLeft: { xs: 0, md: 2 },
+              minWidth: { xs: '100%', md: 180 },
+              width: { xs: '100%', md: 'auto' },
+            }}
+          >
+            <InputLabel id="sort-order-label">Sort By</InputLabel>
+            <Select labelId="sort-order-label" value={sortOrder} onChange={handleSortOrderChange} label="Sort By">
+              <MenuItem value="created_at">Date Added</MenuItem>
+              <MenuItem value="alpha">Alphabetical</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
       </Box>
 
       <InfiniteScroll

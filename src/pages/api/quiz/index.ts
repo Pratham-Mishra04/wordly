@@ -77,7 +77,15 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
       const allWords = await Word.find({ userId: req.session.user.id }).exec();
 
       // Group words by their POS
-      const wordsByPOS = allWords.reduce((acc, word) => {
+      const wordsByPOS = words.reduce((acc, word) => {
+        const pos = word.partOfSpeech;
+        if (!acc[pos]) acc[pos] = [];
+        acc[pos].push(word);
+        return acc;
+      }, {} as Record<string, typeof words>);
+
+      // Group all words by their POS
+      const allWordsByPOS = allWords.reduce((acc, word) => {
         const pos = word.partOfSpeech;
         if (!acc[pos]) acc[pos] = [];
         acc[pos].push(word);
@@ -107,10 +115,19 @@ export const createQuiz = async (req: NextApiRequest, res: NextApiResponse) => {
           const options: Option[] = [correctOption];
           const pos = word.partOfSpeech;
           const samePOSWords = wordsByPOS[pos]?.filter(w => w.word !== word.word) || [];
+          const samePOSAllWords = allWordsByPOS[pos]?.filter(w => w.word !== word.word) || [];
 
           // Add incorrect options from the same POS
           while (options.length < 4 && samePOSWords.length > 0) {
             const randomWord = samePOSWords.splice(Math.floor(Math.random() * samePOSWords.length), 1)[0].word;
+            if (!options.some(opt => opt.value === randomWord)) {
+              options.push({ value: randomWord, isCorrect: false });
+            }
+          }
+
+          // Add incorrect options from the same POS of all words
+          while (options.length < 4 && samePOSAllWords.length > 0) {
+            const randomWord = samePOSAllWords.splice(Math.floor(Math.random() * samePOSAllWords.length), 1)[0].word;
             if (!options.some(opt => opt.value === randomWord)) {
               options.push({ value: randomWord, isCorrect: false });
             }
