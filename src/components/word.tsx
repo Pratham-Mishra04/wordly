@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useState } from 'react';
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import {
   Typography,
   ListItem,
@@ -80,6 +80,17 @@ const WordComponent = ({ index, word, setWords }: Props) => {
       console.error('Error deleting word:', error);
     }
   };
+
+  useEffect(() => {
+    setWordData({
+      word: word.word,
+      meaning: word.meaning,
+      examples: word.examples?.join('\n'),
+      partOfSpeech: word.partOfSpeech,
+      synonyms: word.synonyms?.join(', '),
+      antonyms: word.antonyms?.join(', '),
+    });
+  }, [word]);
 
   return (
     <Box key={word._id} mb={1}>

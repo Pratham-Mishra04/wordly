@@ -45,6 +45,13 @@ const AddWordModal: React.FC<AddWordModalProps> = ({ open, onClose, setWords }) 
       });
       if (response.data.success) {
         setWords(prevWords => [response.data.data, ...prevWords]);
+        setWord('');
+        setMeaning('');
+        setExamples('');
+        setPartOfSpeech('');
+        setSynonyms('');
+        setAntonyms('');
+        setErrorMessage('');
         onClose();
       }
     } catch (err) {

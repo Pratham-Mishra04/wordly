@@ -20,7 +20,6 @@ const WordSchema: Schema<IWord> = new Schema({
   word: {
     type: String,
     required: true,
-    unique: true,
     lowercase: true,
   },
   meaning: {
@@ -32,7 +31,6 @@ const WordSchema: Schema<IWord> = new Schema({
   partOfSpeech: {
     type: String,
     enum: ['noun', 'verb', 'adjective', 'adverb', 'pronoun', 'preposition', 'conjunction', 'interjection', 'article'],
-    default: 'noun', // Set a default value if desired
   },
   synonyms: {
     type: [String],
