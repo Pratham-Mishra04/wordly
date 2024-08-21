@@ -1,9 +1,8 @@
 import sessionCheck from '@/middlewares/session';
 import WordModel from '@/models/word';
 import connectToDB from '@/server/db';
-import axios from 'axios';
+import { fetchFromDictionaryAPI, fetchFromWeb } from '@/server/fetchers';
 import type { NextApiRequest, NextApiResponse } from 'next';
-const cheerio = require('cheerio');
 
 export interface Word {
   word: string;
@@ -14,110 +13,22 @@ export interface Word {
   antonyms?: string[];
 }
 
-async function fetchFromDictionaryAPI(word: string) {
-  try {
-    const response = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-    return response.data;
-  } catch (error) {
-    return null;
-  }
-}
-
-async function fetchFromWeb(word: string) {
-  try {
-    const url = `https://www.dictionary.com/browse/${word}`;
-    const response = await axios.get(url, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-      },
-    });
-
-    // Check if the response status is OK
-    if (response.status !== 200) {
-      throw new Error(`Failed to fetch data, status code: ${response.status}`);
-    }
-
-    const $ = cheerio.load(response.data);
-
-    // Extract the word text
-    const wordText = $(`.elMfuCTjKMwxtSEEnUsi`).first().text().trim();
-
-    // Extract the part of speech and clean up the text
-    const rawPartOfSpeech = $(`.S3nX0leWTGgcyInfTEbW`).first().text().trim();
-    // Example regex to extract a common POS pattern like "noun", "verb", etc.
-    const partOfSpeechMatch = rawPartOfSpeech.match(
-      /\b(noun|verb|adjective|adverb|pronoun|preposition|conjunction|interjection)\b/i
-    );
-    const partOfSpeech = partOfSpeechMatch ? partOfSpeechMatch[0].toLowerCase() : '';
-
-    // Extract and join the text from all elements
-    const definitionElements = $(`.NZKOFkdkcvYgD3lqOIJw`);
-    const definition = definitionElements
-      .filter((index: number, element: any) => {
-        // Check if the element has a child div with text
-        return $(element).find('div').text().trim().length > 0;
-      })
-      .filter((index: number, element: any) => {
-        return index < 5;
-      })
-      .map((index: number, element: any) => {
-        return $(element).text().trim().replace(':', '');
-      })
-      .get()
-      .join('; ');
-
-    // Extract all examples
-    const examples: string[] = [];
-    $(`.dkA1ih27tI9o0MHLDxKt p`).each((i: number, elem: any) => {
-      const exampleText = $(elem).text().trim();
-      if (exampleText) {
-        examples.push(exampleText);
-      }
-    });
-
-    return {
-      word: wordText,
-      partOfSpeech,
-      definition,
-      examples,
-    };
-  } catch (error) {
-    return {
-      word: '',
-      partOfSpeech: '',
-      definition: '',
-      examples: [],
-    };
-  }
-}
-
 async function fetchAndCombineData(word: string): Promise<Word | null> {
   try {
     const [apiData, webData] = await Promise.all([fetchFromDictionaryAPI(word), fetchFromWeb(word)]);
 
-    if (apiData && apiData.length > 0) {
-      const wordData = apiData[0];
-      const firstMeaning = wordData.meanings[0];
+    if (!apiData.word && !webData.word) return null;
 
-      const combinedExamples = [
-        ...webData.examples,
-        ...firstMeaning.definitions.flatMap((def: any) => (def.example ? [def.example] : [])),
-      ];
+    const combinedExamples = [...(webData.examples || []), ...(apiData.examples || [])];
 
-      const shapedWord: Word = {
-        word: webData.word || wordData.word,
-        meaning: webData.definition || firstMeaning.definitions[0]?.definition,
-        partOfSpeech: webData.partOfSpeech || firstMeaning.partOfSpeech,
-        examples: combinedExamples,
-        synonyms: wordData.synonyms || [],
-        antonyms: wordData.antonyms || [],
-      };
-
-      return shapedWord;
-    } else {
-      return null;
-    }
+    return {
+      word,
+      meaning: webData.meaning || apiData.meaning,
+      partOfSpeech: webData.partOfSpeech || apiData.partOfSpeech,
+      examples: combinedExamples,
+      synonyms: apiData.synonyms || [],
+      antonyms: apiData.antonyms || [],
+    };
   } catch (error) {
     return null;
   }
